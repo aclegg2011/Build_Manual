@@ -1,0 +1,98 @@
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index 6d1f24e..b9be7f4 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -23,7 +23,7 @@ TARGET_INIT_VENDOR_LIB := libinit_msm8974
+ TARGET_LIBINIT_MSM8974_DEFINES_FILE := device/samsung/hlte/init/init_hlte.cpp
+ 
+ # Kernel
+-TARGET_KERNEL_CONFIG := lineage_hlte_bcm2079x_defconfig
++TARGET_KERNEL_CONFIG := lineage_hltekdi_bcm2079x_defconfig
+ 
+ # NFC
+ include $(COMMON_PATH)/nfc/bcm2079x/board.mk
+diff --git a/init/init_hlte.cpp b/init/init_hlte.cpp
+index c6b42e1..4f456bb 100644
+--- a/init/init_hlte.cpp
++++ b/init/init_hlte.cpp
+@@ -98,6 +98,57 @@ void init_target_properties()
+         property_override_dual("ro.product.model", "ro.vendor.product.model", "SM-N900P");
+         property_override_dual("ro.product.device", "ro.vendor.product.device", "hltespr");
+         cdma_properties("Sprint", "310120", "8", "1", "spr");
++    } else if (bootloader.find("SCL22") == 0) {
++        /* SCL22 */
++        property_override_dual("ro.build.fingerprint", "ro.vendor.build.fingerprint", "KDDI/SCL22/SCL22:5.0/LRX21V/SCL22KDS2GPL1:user/release-keys");
++        property_override("ro.build.description", "hltekdi-user 5.0 LRX21V SCL22KDS2GPL1 release-keys");
++        property_override_dual("ro.product.model", "ro.vendor.product.model", "SCL22");
++        property_override_dual("ro.product.device", "ro.vendor.product.device", "SCL22");
++//======================================================================
++        /* Dynamic CDMA Properties */
++        property_set("ro.cdma.home.operator.alpha", "KDDI");
++        property_set("ro.cdma.home.operator.numeric", "44050");
++        property_set("ro.telephony.default_network", "8");
++        // 0 = CDMAネットワークで認証するためにSIMカードを使用する場合
++        // 1 = CDMAネットワークで認証するためにESNを使用する場合
++        property_set("ro.telephony.default_cdma_sub", "0");
++//************************
++        set_rild_libpath("kdi");
++        property_set("telephony.lteOnGsmDevice", "1");           //rild.libpathの設定を行った後で設定すると反映された
++
++       /* Static CDMA Properties */
++        property_set("ril.subscription.types", "NV,RUIM");　
++        property_set("telephony.lteOnCdmaDevice", "1");          //KDDI特有か？
++
++        property_override("ro.telephony.get_imsi_from_sim", "true");
++        property_set("telephony.sms.pseudo_multipart", "1");
++//**********************************************************************
++//**********************************************************************
++    } else if (bootloader.find("SC01F") == 0) {
++        /* SC-01F */
++        property_override_dual("ro.build.fingerprint", "ro.vendor.build.fingerprint", "samsung/SC-01F/SC-01F:5.0/LRX21V/SC01FOMSGPL2:user/release-keys");
++        property_override("ro.build.description", "hltedcm-user 5.0 LRX21V SC01FOMSGPL2 release-keys");
++        property_override_dual("ro.product.model", "ro.vendor.product.model", "SC-01F");
++        property_override_dual("ro.product.device", "ro.vendor.product.device", "SC-01F");
++//======================================================================
++        /* Dynamic CDMA Properties */
++        property_set("ro.cdma.home.operator.alpha", "NTT DOCOMO");
++        property_set("ro.cdma.home.operator.numeric", "44010");
++        property_set("ro.telephony.default_network", "0");
++        // 0 = CDMAネットワークで認証するためにSIMカードを使用する場合
++        // 1 = CDMAネットワークで認証するためにESNを使用する場合
++        property_set("ro.telephony.default_cdma_sub", "0");
++//************************
++        set_rild_libpath("dcm");
++        property_set("telephony.lteOnGsmDevice", "1");           //rild.libpathの設定を行った後で設定すると反映された
++
++       /* Static CDMA Properties */
++        property_set("ril.subscription.types", "NV,RUIM");　
++        //property_set("telephony.lteOnCdmaDevice", "1");        //KDDI特有か？
++
++        property_override("ro.telephony.get_imsi_from_sim", "true");
++        property_set("telephony.sms.pseudo_multipart", "1");
++//======================================================================
+     } else {
+         gsm_properties("gsm");
+     }
+diff --git a/lineage.mk b/lineage.mk
+index 6ab1b52..4e56773 100644
+--- a/lineage.mk
++++ b/lineage.mk
+@@ -20,3 +20,6 @@ $(call inherit-product, device/samsung/hlte/full_hlte.mk)
+ 
+ PRODUCT_DEVICE := hlte
+ PRODUCT_NAME := lineage_hlte
++
++PRODUCT_PACKAGES += \
++    OmniSwitch
+diff --git a/overlay/frameworks/base/core/res/res/values/config.xml b/overlay/frameworks/base/core/res/res/values/config.xml
+index 7f25bfe..b9eee7d 100644
+--- a/overlay/frameworks/base/core/res/res/values/config.xml
++++ b/overlay/frameworks/base/core/res/res/values/config.xml
+@@ -46,4 +46,7 @@
+         <item>com.google.android.setupwizard/com.google.android.setupwizard.time.DateTimeCheck</item>
+         <item>com.google.android.setupwizard/com.google.android.setupwizard.carrier.ActivationActivity</item>
+     </string-array>
++
++    <!-- Whether camera shutter sound is forced or not  (country specific). -->
++    <bool name="config_camera_sound_forced">false</bool>
+ </resources>

@@ -1,0 +1,33 @@
+--- arch/arm/configs/lineage_hlte_bcm2079x_defconfig
++++ arch/arm/configs/lineage_hltekdi_bcm2079x_defconfig
+@@ -527,7 +527,7 @@
+ CONFIG_SEC_H_PROJECT=y
+ CONFIG_USER_RESET_DEBUG=y
+ # CONFIG_MACH_HLTEATT is not set
+-CONFIG_MACH_HLTEEUR=y
++# CONFIG_MACH_HLTEEUR is not set
+ # CONFIG_MACH_HLTECHNTWU is not set
+ # CONFIG_MACH_H3G_CHN_OPEN is not set
+ # CONFIG_MACH_H3G_CHN_CMCC is not set
+@@ -589,10 +589,10 @@
+ # CONFIG_MACH_KANAS3G_CTC is not set
+ # CONFIG_SEC_LOCALE_KOR is not set
+ # CONFIG_SEC_LOCALE_KOR_H is not set
+-# CONFIG_SEC_LOCALE_JPN is not set
++CONFIG_SEC_LOCALE_JPN=y
+ # CONFIG_SEC_LOCALE_CHN is not set
+ # CONFIG_MACH_HLTEDCM is not set
+-# CONFIG_MACH_HLTEKDI is not set
++CONFIG_MACH_HLTEKDI=y
+ # CONFIG_MACH_JS01LTEDCM is not set
+ # CONFIG_MACH_JS01LTEZT is not set
+ # CONFIG_MACH_HLTESKT is not set
+@@ -1506,7 +1506,7 @@
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+ CONFIG_FW_LOADER=y
+ CONFIG_FIRMWARE_IN_KERNEL=y
+-CONFIG_EXTRA_FIRMWARE="audience-es325-fw-h-eur.bin"
++CONFIG_EXTRA_FIRMWARE="audience-es325-fw-h-kdi.bin"
+ CONFIG_EXTRA_FIRMWARE_DIR="firmware/es325"
+ # CONFIG_DEBUG_DRIVER is not set
+ # CONFIG_DEBUG_DEVRES is not set

@@ -1,0 +1,62 @@
+# 1. 初期準備<br>
+『ビルド結果と運用結果は、すべて自己責任が大前提である』<br>
+ことを了解した上で下記を参照ください<br>
+詳細は<https://github.com/MajesticClouds/Initial_settings_for_PC/blob/master/01_CentOS/02_Prepare_Build_Enviroment.mkd>を参照<br>
+
+# 2. ソースのダウンロード<br>
+下記コマンドの意味は下記の通り<br>
+Step1:ソースのルートディレクトリを作成して同時に移動する。<br>
+Step2:絶対に必要なリポジトリを入手する。<br>
+Step3:note3用に必要なリポジトリをroomservice.xmlを作成し入手準備する。<br>
+```C
+~/$ mkdir -p ~/LineageOS15.1_hlte && cd $_
+~/LineageOS15.1_hlte$ repo init -u https://github.com/LineageOS/android.git -b lineage-15.1
+~/LineageOS15.1_hlte$ mkdir -p .repo/local_manifests
+~/LineageOS15.1_hlte$ curl https://raw.githubusercontent.com/MajesticClouds/Build_Manual/LineageOS15.1_hlte/local_manifests/roomservice.xml > .repo/local_manifests/roomservice.xml
+```
+リポジトリをダウンロードする<br>
+```C
+~/LineageOS15.1_hlte$ repo sync -j32
+```
+# 3. ソースのコンパイル<br>
+下記のexport WITH_TWRP=falseをexport WITH_TWRP=trueとしても、今のところ正常に起動するROMは作られないことに注意<br>
+```C
+$ cd ~/LineageOS15.1_hlte
+
+~/LineageOS15.1_hlte$ export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+~/LineageOS15.1_hlte$ source build/envsetup.sh ; lunch lineage_hlte-userdebug ; breakfast hlte ; export WITH_SU=true ;export WITH_TWRP=false
+~/LineageOS15.1_hlte$ m blueprint_tools 2>&1 | tee Tryblueprint_tools.log
+~/LineageOS15.1_hlte$ nice -n 10 time make otatools 2>&1 | tee TryOta1.log
+~/LineageOS15.1_hlte$ time brunch hlte 2>&1 | tee Try_hlte.log
+```
+# 4. TWRPのコンパイル<br>
+尚、上記を実施後TWRPビルドをする前に<br>
+```C
+~/MyOutput_B/LineageOS15.1_hlte/target/product/hlte
+```
+のディレクトリ名を適当な名前に変更しておかないと上書きしてしまう<br>
+```C
+$ cd ~/LineageOS15.1_hlte
+~/LineageOS15.1_hlte$ source build/envsetup.sh ; lunch lineage_hlte-userdebug ; breakfast hlte ; export WITH_SU=true
+~/LineageOS15.1_hlte$ m blueprint_tools 2>&1 | tee Tryblueprint_tools.log
+~/LineageOS15.1_hlte$ nice -n 10 time make otatools 2>&1 | tee TryOta1.log
+
+~/LineageOS15.1_hlte$ cd system/core
+~/LineageOS15.1_hlte/system/core$ wget https://raw.githubusercontent.com/MajesticClouds/Build_Manual/LineageOS15.1_hlte/Patch/TWRP/system_core_For_WITH_TWRP.patch
+~/LineageOS15.1_hlte/system/core$ git apply --check system_core_For_WITH_TWRP.patch
+~/LineageOS15.1_hlte/system/core$ git apply system_core_For_WITH_TWRP.patch
+~/LineageOS15.1_hlte/system/core$ croot
+
+~/LineageOS15.1_hlte$ export WITH_TWRP=true ; nice -n 10 time make recoveryimage 2>&1 | tee BuildRecovery.log
+```
+# 5. 成果物は<br>
+```C
+~/MyOutput_B/LineageOS15.1_hlte/target/product/hlte
+```
+```C
+~/LineageOS15.1_hlte$ cd $OUT
+~/MyOutput_B/LineageOS15.1_hlte/target/product/hlte ls
+recovery.img
+~/MyOutput_B/LineageOS15.1_hlte/target/product/hlte$ export DATE=$(date '+%y%m%d'_'%H%M')
+~/MyOutput_B/LineageOS15.1_hlte/target/product/hlte$ tar -C ./ -H ustar -c recovery.img > $DATE-twrp3.2.3_forSCL22.tar
+```

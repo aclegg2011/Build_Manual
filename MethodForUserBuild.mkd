@@ -1,0 +1,14 @@
+＃ 1. 開始方法
+```C
+
+$ cd ~/LineageOS15.1_hlte
+
+~/LineageOS15.1_hlte$ export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+or
+~/LineageOS15.1_hlte$ export PATH=$PATH:prebuilts/sdk/tools
+
+~/LineageOS15.1_hlte$ source build/envsetup.sh ; lunch lineage_hlte-user
+~/LineageOS15.1_hlte$ m blueprint_tools 2>&1 | tee Tryblueprint_tools.log
+~/LineageOS15.1_hlte$ nice -n 10 time make otatools 2>&1 | tee TryOta1.log
+~/LineageOS15.1_hlte$ time make otapackage 2>&1 | tee Try_hlte.log
+```
