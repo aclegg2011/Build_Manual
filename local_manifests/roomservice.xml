@@ -1,29 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <remote fetch="git://github.com/" name="MajesticClouds"   review="https://github.com/MajesticClouds/" />
-  <remote fetch="git://github.com/" name="TheMuppets"       review="https://github.com/TheMuppets/" />
-  <remote fetch="git://github.com/" name="omnirom"          review="https://github.com/omnirom/" />
+  <remote fetch="git://github.com/" name="TheMuppets" review="https://github.com/TheMuppets/" />
+  <remote fetch="git://github.com/" name="omnirom"    review="https://github.com/omnirom/" />
 
-  <!-- b -->
-  <project name="omnirom/android_bootable_recovery"                   path="bootable/recovery-twrp"            remote="omnirom" revision="android-8.1" />
-  <project name="omnirom/android_external_busybox"                    path="external/busybox"                  remote="omnirom" revision="android-8.1" />
   <!-- d -->
-  <project name="LineageOS/android_device_qcom_common"                path="device/qcom/common"                remote="github"  revision="lineage-15.1" />
-  <project name="LineageOS/android_device_samsung_hlte"               path="device/samsung/hlte"               remote="github"  revision="lineage-15.1" />
-  <project name="LineageOS/android_device_samsung_hlte-common"        path="device/samsung/hlte-common"        remote="github"  revision="lineage-15.1" />
-  <project name="LineageOS/android_device_samsung_msm8974-common"     path="device/samsung/msm8974-common"     remote="github"  revision="lineage-15.1" />
-  <project name="LineageOS/android_device_samsung_qcom-common"        path="device/samsung/qcom-common"        remote="github"  revision="lineage-15.1" />
+  <project name="LineageOS/android_device_samsung_hlte"               path="device/samsung/hlte"               remote="github"  revision="lineage-16.0" />
+  <project name="LineageOS/android_device_samsung_hlte-common"        path="device/samsung/hlte-common"        remote="github"  revision="lineage-16.0" />
+  <project name="LineageOS/android_device_samsung_msm8974-common"     path="device/samsung/msm8974-common"     remote="github"  revision="lineage-16.0" />
+  <project name="LineageOS/android_device_samsung_qcom-common"        path="device/samsung/qcom-common"        remote="github"  revision="lineage-16.0" />
   <!-- e -->
   <project name="LineageOS/android_external_stlport"                  path="external/stlport"                  remote="github"  revision="lineage-15.1" />
   <!-- h -->
-  <project name="LineageOS/android_hardware_samsung"                  path="hardware/samsung"                  remote="github"  revision="lineage-15.1" />
+  <project name="LineageOS/android_hardware_samsung"                  path="hardware/samsung"                  remote="github"  revision="lineage-16.0" />
   <!-- k -->
-  <project name="LineageOS/android_kernel_samsung_msm8974"            path="kernel/samsung/msm8974"            remote="github"  revision="lineage-15.1" />
+  <project name="LineageOS/android_kernel_samsung_msm8974"            path="kernel/samsung/msm8974"            remote="github"   revision="lineage-16.0" />
   <!-- p -->
-  <project name="LineageOS/android_packages_inputmethods_OpenWnn"     path="packages/inputmethods/OpenWnn"     remote="github"  revision="cm-12.0" />
-  <project name="LineageOS/android_packages_apps_FlipFlap"            path="packages/apps/FlipFlap"            remote="github"  revision="lineage-15.1" />
-  <project name="LineageOS/android_packages_resources_devicesettings" path="packages/resources/devicesettings" remote="github"  revision="lineage-15.1" />
-  <project name="omnirom/android_packages_apps_OmniSwitch"            path="packages/apps/OmniSwitch"          remote="omnirom" revision="android-8.1" />
+  <project name="LineageOS/android_packages_apps_FlipFlap"            path="packages/apps/FlipFlap"            remote="github"  revision="lineage-16.0" />
+  <project name="LineageOS/android_packages_resources_devicesettings" path="packages/resources/devicesettings" remote="github"  revision="lineage-16.0" />
+  <project name="omnirom/android_packages_apps_OmniSwitch"            path="packages/apps/OmniSwitch"          remote="omnirom" revision="android-9.0" />
   <!-- v -->
-  <project name="TheMuppets/proprietary_vendor_samsung"               path="vendor/samsung"                    remote="TheMuppets" revision="lineage-15.1" />
+  <project name="TheMuppets/proprietary_vendor_samsung"               path="vendor/samsung"                    remote="TheMuppets"  revision="lineage-16.0" />
 </manifest>

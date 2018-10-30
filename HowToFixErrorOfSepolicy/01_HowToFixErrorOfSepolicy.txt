@@ -1,0 +1,66 @@
+考え方
+
+簡単な修正例で説明します。ソースが 
+neverallow A B:C D 
+に対して、エラーメッセージが 
+violated by allow A E:C D 
+が出たとき、上下を比較するとEの部分が前提条件として許可しているはずなのに
+neverallow A B:C D ではこの前提条件に違反してますよって言う意味です。
+よって、"ｰ"(マイナス記号)をつかって、Eを除外すればいいので 
+neverallow A { B -E }:C D 
+が答えとなります。
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+では例題を使って更に説明します。
+エラーメッセージが
+libsepol.report_failure: neverallow on line 74 of device/qcom/sepolicy-legacy/common/rfs_access.te (or line 62814 of policy.conf) violated by 
+で、device/qcom/sepolicy-legacy/common/rfs_access.teの74行目は
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file create_file_perms;
+です。どううい風に修正すればいいか説明します
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+解答
+ステップ1：先ず単純に並べます
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file create_file_perms;
+allow vendor_init rfs_file:file { read write create getattr setattr unlink open };
+
+ステップ2：ここでは、create_file_permsが何かよくわからないものに見えます
+そこで、
+system/sepolicy/public/gnobal_macrosというファイルの23〜30行目をみると下記のようになっています
+########################################################################
+define(`x_file_perms', `{ getattr execute execute_no_trans map }')
+define(`r_file_perms', `{ getattr open read ioctl lock map }')
+define(`w_file_perms', `{ open append write lock map }')
+define(`rx_file_perms', `{ r_file_perms x_file_perms }')
+define(`ra_file_perms', `{ r_file_perms append }')
+define(`rw_file_perms', `{ r_file_perms w_file_perms }')
+define(`rwx_file_perms', `{ rw_file_perms x_file_perms }')
+define(`create_file_perms', `{ create rename setattr unlink rw_file_perms }')
+########################################################################
+そこで
+create_file_perms = { create rename setattr unlink rw_file_perms }
+                    { create rename setattr unlink r_file_perms w_file_perms }
+                    { read write create getattr setattr unlink open    rename ioctl lock map open append lock map }
+                    なので、下記の2つのグループに分けることができます。
+                    { read write create getattr setattr unlink open }{ rename ioctl lock map open append lock map }
+########################################################################
+さて再度問題を並べると
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file create_file_perms;
+allow vendor_init rfs_file:file { read write create getattr setattr unlink open };
+########################################################################
+上記は下記の様に分けることができます。
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map open append lock map };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { read write create getattr setattr unlink open };
+     allow   vendor_init                                                                          rfs_file:file { read write create getattr setattr unlink open };
+########################################################################
+上記の2行目と3行目について、最初の解説で述べた方法で3行目を2行目に取り込むには、"ｰ"(マイナス記号)をつかって、vendor_initを除外すればいいので
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map open append lock map };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file { read write create getattr setattr unlink open };
+下記の様になります。説明は以上です。
+
+尚、実際にここまで修正してビルドを走らしてももう一回別のエラーが出ます。
+最終的には
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir { reparent rename lock lock };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:dir { open search };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
+にすることでエラーが、device/qcom/sepolicy-legacy/common/rfs_access.teの74行目に対してなくすことができました。
