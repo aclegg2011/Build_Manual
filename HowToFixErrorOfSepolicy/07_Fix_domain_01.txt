@@ -17,7 +17,10 @@ system/sepolicy/public/domain.te の1396行目は
 neverallow domain cgroup:file create;
 これに統合すると
 
-neverallow { domain -init -qti_init_shell -zygote } cgroup:file create;
+neverallow { domain -init -zygote } cgroup:file create;
+下記はdevice/qcom/sepolicy-legacy/common/domain.te へ引っ越す
+neverallow { domain -qti_init_shell } cgroup:file create;
+
 ########################################################################
 エラーメッセージは
 libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow qti_init_shell sysfs_devices_system_cpu:dir { write };
