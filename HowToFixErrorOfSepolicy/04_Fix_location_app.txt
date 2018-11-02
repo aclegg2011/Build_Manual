@@ -1,0 +1,132 @@
+device/qcom/sepolicy-legacy/common/location_app.te の 2行目は
+app_domain(location_app)
+よって
+app_domain($1)
+エラーメッセージは
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app poweroffalarm_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app nfc:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app platform_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app untrusted_app_25:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app untrusted_app_27:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app ephemeral_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app bluetooth:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app untrusted_v2_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app priv_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app qdma_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app mediaprovider:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app qtelephony:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app radio:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app untrusted_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app shared_relro:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app traceur_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app system_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app qsee_svc_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app dataservice_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app mdtpservice_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app timeservice_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app imshelper_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app shell:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app secure_element:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app qti_logkit_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56015 of policy.conf) violated by allow location_app isolated_app:file { ioctl read lock open };
+============================================================================
+allow location_app poweroffalarm_app:file { ioctl read lock open };
+allow location_app nfc:file { ioctl read lock open };
+allow location_app platform_app:file { ioctl read lock open };
+allow location_app untrusted_app_25:file { ioctl read lock open };
+allow location_app untrusted_app_27:file { ioctl read lock open };
+allow location_app ephemeral_app:file { ioctl read lock open };
+allow location_app bluetooth:file { ioctl read lock open };
+allow location_app untrusted_v2_app:file { ioctl read lock open };
+allow location_app ssg_app:file { ioctl read lock open };
+allow location_app priv_app:file { ioctl read lock open };
+allow location_app qdma_app:file { ioctl read lock open };
+allow location_app mediaprovider:file { ioctl read lock open };
+allow location_app qtelephony:file { ioctl read lock open };
+allow location_app radio:file { ioctl read lock open };
+allow location_app untrusted_app:file { ioctl read lock open };
+allow location_app shared_relro:file { ioctl read lock open };
+allow location_app traceur_app:file { ioctl read lock open };
+allow location_app system_app:file { ioctl read lock open };
+allow location_app qsee_svc_app:file { ioctl read lock open };
+allow location_app dataservice_app:file { ioctl read lock open };
+allow location_app mdtpservice_app:file { ioctl read lock open };
+allow location_app timeservice_app:file { ioctl read lock open };
+allow location_app imshelper_app:file { ioctl read lock open };
+allow location_app shell:file { ioctl read lock open };
+allow location_app secure_element:file { ioctl read lock open };
+allow location_app qti_logkit_app:file { ioctl read lock open };
+allow location_app isolated_app:file { ioctl read lock open };
+============================================================================
+allow location_app {
+   bluetooth
+   dataservice_app
+   ephemeral_app
+   imshelper_app
+   isolated_app
+   location_app
+   mdtpservice_app
+   mediaprovider
+   nfc
+   platform_app
+   poweroffalarm_app
+   priv_app
+   qdma_app
+   qsee_svc_app
+   qtelephony
+   qti_logkit_app
+   radio
+   secure_element
+   shared_relro
+   shell
+   ssg_app
+   system_app
+   timeservice_app
+   traceur_app
+   untrusted_app
+   untrusted_app_25
+   untrusted_app_27
+   untrusted_v2_app
+}:file { ioctl read lock open };
+============================================================================
+neverallow { $1 -shell } { domain -$1 }:file no_rw_file_perms;
+
+no_rw_file_perms = { ioctl read lock open } { append create link unlink relabelfrom rename setattr write }
+============================================================================
+neverallow { $1 -shell } { domain -$1 }:file { append create link unlink relabelfrom rename setattr write };
+neverallow { $1 -shell } { domain -$1 }:file { ioctl read lock open };
+============================================================================
+neverallow { $1 -shell } { domain -$1 }:file { append create link unlink relabelfrom rename setattr write };
+neverallow { $1 -shell -location_app } {
+    domain
+    -$1
+    -bluetooth
+    -dataservice_app
+    -ephemeral_app
+    -imshelper_app
+    -isolated_app
+    -location_app
+    -mdtpservice_app
+    -mediaprovider
+    -nfc
+    -platform_app
+    -poweroffalarm_app
+    -priv_app
+    -qdma_app
+    -qsee_svc_app
+    -qtelephony
+    -qti_logkit_app
+    -radio
+    -secure_element
+    -shared_relro
+    -shell
+    -ssg_app
+    -system_app
+    -timeservice_app
+    -traceur_app
+    -untrusted_app
+    -untrusted_app_25
+    -untrusted_app_27
+    -untrusted_v2_app
+}:file { ioctl read lock open };
