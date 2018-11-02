@@ -1,0 +1,44 @@
+エラーメッセージは
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow platform_app ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow untrusted_app_25 ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow priv_app ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow radio ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow untrusted_app ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow location_app ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow system_app ssg_app:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow dataservice_app ssg_app:file { ioctl read lock open };
+========================================================================
+device/qcom/sepolicy-legacy/ssg/ssg_app.te の34行目は
+app_domain(ssg_app)
+で
+te_macros というマクロファイル中の
+neverallow { $1 -shell } { domain -$1 }:file no_rw_file_perms;
+neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
+でエラー発生。
+また、neverallow_macrosによると
+no_rw_file_perms = { no_w_file_perms     ioctl read lock open }
+                   { no_w_file_perms } { ioctl read lock open }
+までが前置き。
+========================================================================
+エラーメッセージの前段
+libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by 
+を除外し、ssg_appを$1で置き換えると
+allow { platform_app untrusted_app_25 priv_app radio untrusted_app location_app system_app dataservice_app } $1:file { ioctl read lock open };
+となる。よって
+neverallow { $1 -shell } { domain -$1 }:file no_rw_file_perms;
+neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
+は
+========================================================================
+neverallow { $1 -shell }           { domain -$1 }:file no_w_file_perms;
+neverallow { appdomain -shell -$1 }          $1  :file no_w_file_perms;
+neverallow { $1 -shell }           { domain -$1 }:file{ ioctl read lock open };
+
+neverallow { appdomain -shell -$1 }                                                                               $1:file { ioctl read lock open };
+     allow { platform_app untrusted_app_25 priv_app radio untrusted_app location_app system_app dataservice_app } $1:file { ioctl read lock open };
+となって
+========================================================================
+下記に集約できる。
+neverallow { $1 -shell }           { domain -$1 }:file no_w_file_perms;
+neverallow { appdomain -shell -$1 }          $1  :file no_w_file_perms;
+neverallow { $1 -shell }           { domain -$1 }:file{ ioctl read lock open };
+neverallow { appdomain -shell -$1 -platform_app -untrusted_app_25 -priv_app -radio -untrusted_app -location_app -system_app -dataservice_app } $1:file { ioctl read lock open };
