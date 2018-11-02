@@ -15,11 +15,10 @@ allow { init qti_init_shell zygote } cgroup:file { create };
 system/sepolicy/public/domain.te の1396行目は
 
 neverallow domain cgroup:file create;
-これに統合すると
+これに統合する
 
-neverallow { domain -init -zygote } cgroup:file create;
 下記はdevice/qcom/sepolicy-legacy/common/domain.te へ引っ越す
-neverallow { domain -qti_init_shell } cgroup:file create;
+neverallow { domain -init -qti_init_shell -zygote } cgroup:file create;
 
 ########################################################################
 エラーメッセージは
