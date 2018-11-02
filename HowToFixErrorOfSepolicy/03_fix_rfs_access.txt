@@ -1,0 +1,40 @@
+エラーメッセージは
+libsepol.report_failure: neverallow on line 74 of device/qcom/sepolicy-legacy/common/rfs_access.te (or line 62985 of policy.conf) violated by
+allow vendor_init rfs_file:file { read write create getattr setattr unlink open };
+========================================================================
+device/qcom/sepolicy-legacy/common/rfs_access.te の 74行目
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file create_file_perms;
+また
+create_file_perms = { read write create getattr setattr unlink open } { rename ioctl lock map open append lock map }
+========================================================================
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map open append lock map };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { read write create getattr setattr unlink open };
+     allow vendor_init                                                                            rfs_file:file { read write create getattr setattr unlink open };
+========================================================================
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map open append lock map };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file { read write create getattr setattr unlink open };
+
+########################################################################
+エラーメッセージは
+libsepol.report_failure: neverallow on line 73 of device/qcom/sepolicy-legacy/common/rfs_access.te (or line 62984 of policy.conf) violated by
+allow vendor_init rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
+========================================================================
+device/qcom/sepolicy-legacy/common/rfs_access.te の 73行目
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir create_dir_perms;
+また
+create_dir_perms = { create reparent rename rmdir setattr rw_dir_perms }
+                 = { create reparent rename rmdir setattr r_dir_perms w_dir_perms }
+                 = { ioctl read write create getattr setattr add_name remove_name search rmdir open }{ reparent rename lock search lock }
+========================================================================
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir { reparent rename lock search lock };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
+     allow                                                                          vendor_init   rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
+========================================================================
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir { reparent rename lock search lock };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
+
+#########################################################################
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir { reparent rename lock search lock };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map open append lock map };
+neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file { read write create getattr setattr unlink open };
