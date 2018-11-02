@@ -148,3 +148,84 @@ neverallow {
   -qlogd
   -rfs_access
 } self:capability dac_override;
+====================================================
+device/qcom/sepolicy-legacy/common以下のフォルダでtype有無確認
+$ grep "type update_engine," ./ -rns
+みつからない
+$ grep "type mpdecision," ./ -rns
+./mpdecision.te:1:type mpdecision, domain, mlstrustedsubject;
+$ grep "type port-bridge," ./ -rns
+./port-bridge.te:1:type port-bridge, domain;
+$ grep "type msm_irqbalanced," ./ -rns
+./msm_irqbalanced.te:1:type msm_irqbalanced, domain;
+$ grep "type thermal-engine," ./ -rns
+./thermal-engine.te:2:type thermal-engine, domain;
+$ grep "type hal_iop_default," ./ -rns
+./hal_iop_default.te:28:type hal_iop_default, domain, mlstrustedsubject;
+$ grep "type sensors," ./ -rns
+./sensors.te:2:type sensors, domain;
+$ grep "type qmuxd," ./ -rns
+./qmuxd.te:1:type qmuxd, domain;
+$ grep "type qti_init_shell," ./ -rns
+./init_shell.te:4:type qti_init_shell, domain;
+$ grep "type qlogd," ./ -rns
+./qlogd.te:2:type qlogd, domain;
+$ grep "type rfs_access," ./ -rns
+./rfs_access.te:2:type rfs_access, domain;
+
+よって
+neverallow {
+  domain
+  -dnsmasq
+  -dumpstate
+  -init
+  -installd
+  -install_recovery
+  -lmkd
+  -netd
+  -perfprofd
+  -postinstall_dexopt
+  -recovery
+  -sdcardd
+  -tee
+  -ueventd
+  -uncrypt
+  -vendor_init
+  -vold
+  -vold_prepare_subdirs
+  -zygote
+  ##
+  -update_engine 
+  ##
+} self:capability dac_override;
+
+と下記に分けて、下記はdevice/qcom/sepolicy-legacy/common/domain.teへ引っ越す
+neverallow {
+  domain -mmi
+  -hal_perf_default
+  -mpdecision
+  -port-bridge
+  -msm_irqbalanced
+  -thermal-engine
+  -hal_iop_default
+  -sensors
+  -qmuxd
+  -qti_init_shell
+  -qcomsysd
+  -qlogd
+  -rfs_access
+} self:capability dac_override;
+neverallow {
+   domain
+   -traced_probes 
+   -update_engine
+   -thermal-engine
+   -hal_iop_default
+   -sensors
+   -qti_init_shell
+   -qlogd rfs_access
+} self:capability dac_read_search;
+
+
+
+
