@@ -1,0 +1,36 @@
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { create rmdir };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+} :dir { add_name remove_name };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+    -qti_init_shell
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+    -sysfs_devices_system_cpu
+} :dir { write };
