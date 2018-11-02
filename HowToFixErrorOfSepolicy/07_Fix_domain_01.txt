@@ -1,3 +1,167 @@
+########################################################################
+エラーメッセージは
+libsepol.report_failure: neverallow on line 1396 of system/sepolicy/public/domain.te (or line 11343 of policy.conf) violated by allow init cgroup:file { create };
+libsepol.report_failure: neverallow on line 1396 of system/sepolicy/public/domain.te (or line 11343 of policy.conf) violated by allow qti_init_shell cgroup:file { create };
+libsepol.report_failure: neverallow on line 1396 of system/sepolicy/public/domain.te (or line 11343 of policy.conf) violated by allow zygote cgroup:file { create };
+
+よって
+allow init cgroup:file { create };
+allow qti_init_shell cgroup:file { create };
+allow zygote cgroup:file { create };
+
+つまり
+allow { init qti_init_shell zygote } cgroup:file { create };
+
+system/sepolicy/public/domain.te の1396行目は
+
+neverallow domain cgroup:file create;
+これに統合すると
+
+neverallow { domain -init -qti_init_shell -zygote } cgroup:file create;
+########################################################################
+エラーメッセージは
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow qti_init_shell sysfs_devices_system_cpu:dir { write };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow init sysfs_hsic_host_rdy:dir { write create add_name remove_name rmdir };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow init hbtp_kernel_sysfs:dir { write create add_name remove_name rmdir };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow vendor_init sysfs_ssr_toggle:dir { write create add_name remove_name rmdir };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow vendor_init sysfs_hsic_host_rdy:dir { write create add_name remove_name rmdir };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow usb_uicc_daemon sysfs_usb_uicc:dir { write add_name remove_name };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow vendor_init hbtp_kernel_sysfs:dir { write create add_name remove_name rmdir };
+libsepol.report_failure: neverallow on line 1393 of system/sepolicy/public/domain.te (or line 11340 of policy.conf) violated by allow init sysfs_ssr_toggle:dir { write create add_name remove_name rmdir };
+
+よって
+allow init            hbtp_kernel_sysfs       :dir { write create add_name remove_name rmdir };
+allow init            sysfs_hsic_host_rdy     :dir { write create add_name remove_name rmdir };
+allow init            sysfs_ssr_toggle        :dir { write create add_name remove_name rmdir };
+allow vendor_init     hbtp_kernel_sysfs       :dir { write create add_name remove_name rmdir };
+allow vendor_init     sysfs_hsic_host_rdy     :dir { write create add_name remove_name rmdir };
+allow vendor_init     sysfs_ssr_toggle        :dir { write create add_name remove_name rmdir };
+allow usb_uicc_daemon sysfs_usb_uicc          :dir { write add_name remove_name };
+allow qti_init_shell  sysfs_devices_system_cpu:dir { write };
+
+さらに
+allow {init vendor_init} { hbtp_kernel_sysfs sysfs_hsic_host_rdy sysfs_ssr_toggle}:dir { write create add_name remove_name rmdir };
+allow usb_uicc_daemon sysfs_usb_uicc          :dir { write add_name remove_name };
+allow qti_init_shell  sysfs_devices_system_cpu:dir { write };
+となる。
+************************************************************************
+今、system/sepolicy/public/domain.te の1393行目は
+neverallow domain {
+  proc_type
+  sysfs_type
+}:dir { add_name create link remove_name rename reparent rmdir write };
+
+neverallow domain { proc_type sysfs_type }:dir { add_name create link remove_name rename reparent rmdir write };
+なので
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow domain { proc_type sysfs_type }:dir { add_name create remove_name rmdir write };
+************************************************************************
+1つめの統合
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow domain               { proc_type sysfs_type }                                 :dir { add_name create remove_name rmdir write };
+     allow { init vendor_init } { hbtp_kernel_sysfs sysfs_hsic_host_rdy sysfs_ssr_toggle}:dir { write create add_name remove_name rmdir };
+************************************************************************
+上記は
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { add_name create remove_name rmdir write };
+
+========================================================================
+2つめの
+allow usb_uicc_daemon sysfs_usb_uicc :dir { write add_name remove_name };
+統合用に
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { create rmdir };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { add_name remove_name write };
+************************************************************************
+に統合して
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { create rmdir };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+} :dir { add_name remove_name write };
+
+========================================================================
+3つめの
+allow qti_init_shell  sysfs_devices_system_cpu:dir { write };
+統合用に
+neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { create rmdir };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+} :dir { add_name remove_name };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+} :dir { write };
+************************************************************************
+に統合して
 neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
 neverallow {
     domain
@@ -34,3 +198,4 @@ neverallow {
     -sysfs_usb_uicc
     -sysfs_devices_system_cpu
 } :dir { write };
+
