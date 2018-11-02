@@ -1,0 +1,55 @@
+エラーメッセージは
+libsepol.report_failure: neverallow on line 119 of system/sepolicy/private/isolated_app.te (or line 29804 of policy.conf) violated by allow isolated_app sysfs_ssr:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 119 of system/sepolicy/private/isolated_app.te (or line 29804 of policy.conf) violated by allow isolated_app sysfs_esoc:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 119 of system/sepolicy/private/isolated_app.te (or line 29804 of policy.conf) violated by allow isolated_app sysfs_socinfo:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 119 of system/sepolicy/private/isolated_app.te (or line 29804 of policy.conf) violated by allow isolated_app sysfs_kgsl_gpuclk:file { ioctl read lock open };
+libsepol.report_failure: neverallow on line 119 of system/sepolicy/private/isolated_app.te (or line 29804 of policy.conf) violated by allow isolated_app sysfs_thermal:file { ioctl read lock open };
+よって
+allow isolated_app sysfs_ssr:file { ioctl read lock open };
+allow isolated_app sysfs_esoc:file { ioctl read lock open };
+allow isolated_app sysfs_socinfo:file { ioctl read lock open };
+allow isolated_app sysfs_kgsl_gpuclk:file { ioctl read lock open };
+allow isolated_app sysfs_thermal:file { ioctl read lock open };
+つまり
+allow isolated_app { sysfs_ssr sysfs_esoc sysfs_socinfo sysfs_kgsl_gpuclk sysfs_thermal }:file { ioctl read lock open };
+一方
+system/sepolicy/private/isolated_app.te の119行目は
+
+neverallow isolated_app {
+  sysfs_type
+  -sysfs_devices_system_cpu
+  -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
+}:file no_rw_file_perms;
+今
+no_rw_file_perms = { no_w_file_perms open read ioctl lock } 
+なので
+
+neverallow isolated_app {
+  sysfs_type
+  -sysfs_devices_system_cpu
+  -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
+}:file no_w_file_perms;
+neverallow isolated_app {
+  sysfs_type
+  -sysfs_devices_system_cpu
+  -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
+}:file { open read ioctl lock } ;
+これに
+allow isolated_app { sysfs_ssr sysfs_esoc sysfs_socinfo sysfs_kgsl_gpuclk sysfs_thermal }:file { ioctl read lock open };
+を統合すると
+
+neverallow isolated_app {
+  sysfs_type
+  -sysfs_devices_system_cpu
+  -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
+}:file no_w_file_perms;
+neverallow isolated_app {
+  sysfs_type
+  -sysfs_devices_system_cpu
+  -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
+  -sysfs_ssr
+  -sysfs_esoc
+  -sysfs_socinfo
+  -sysfs_kgsl_gpuclk
+  -sysfs_thermal
+}:file { open read ioctl lock } ;
