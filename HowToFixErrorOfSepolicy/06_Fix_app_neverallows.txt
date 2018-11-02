@@ -1,0 +1,136 @@
+エラーメッセージは
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_kgsl:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_kgsl:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_msm_perf:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_msm_perf:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_mpdecision:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_mpdecision:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_cpu_boost:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_cpu_boost:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_devfreq:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_devfreq:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_memory:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_memory:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_battery_supply:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_battery_supply:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_scsi_host:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_scsi_host:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_process_reclaim:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_process_reclaim:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_graphics:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_graphics:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_devices_system_cpu:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_devices_system_cpu:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_msm_power:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_msm_power:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app_25 sysfs_mmc_host:file { write append };
+libsepol.report_failure: neverallow on line 66 of system/sepolicy/private/app_neverallows.te (or line 25395 of policy.conf) violated by allow untrusted_app sysfs_mmc_host:file { write append };
+
+よって、並び替えもして
+allow untrusted_app sysfs_battery_supply:file { write append };
+allow untrusted_app sysfs_cpu_boost:file { write append };
+allow untrusted_app sysfs_devfreq:file { write append };
+allow untrusted_app sysfs_devices_system_cpu:file { write append };
+allow untrusted_app sysfs_graphics:file { write append };
+allow untrusted_app sysfs_kgsl:file { write append };
+allow untrusted_app sysfs_memory:file { write append };
+allow untrusted_app sysfs_mmc_host:file { write append };
+allow untrusted_app sysfs_mpdecision:file { write append };
+allow untrusted_app sysfs_msm_perf:file { write append };
+allow untrusted_app sysfs_msm_power:file { write append };
+allow untrusted_app sysfs_process_reclaim:file { write append };
+allow untrusted_app sysfs_scsi_host:file { write append };
+allow untrusted_app_25 sysfs_battery_supply:file { write append };
+allow untrusted_app_25 sysfs_cpu_boost:file { write append };
+allow untrusted_app_25 sysfs_devfreq:file { write append };
+allow untrusted_app_25 sysfs_devices_system_cpu:file { write append };
+allow untrusted_app_25 sysfs_graphics:file { write append };
+allow untrusted_app_25 sysfs_kgsl:file { write append };
+allow untrusted_app_25 sysfs_memory:file { write append };
+allow untrusted_app_25 sysfs_mmc_host:file { write append };
+allow untrusted_app_25 sysfs_mpdecision:file { write append };
+allow untrusted_app_25 sysfs_msm_perf:file { write append };
+allow untrusted_app_25 sysfs_msm_power:file { write append };
+allow untrusted_app_25 sysfs_process_reclaim:file { write append };
+allow untrusted_app_25 sysfs_scsi_host:file { write append };
+さらに
+allow untrusted_app {
+    sysfs_battery_supply
+    sysfs_cpu_boost
+    sysfs_devfreq
+    sysfs_devices_system_cpu
+    sysfs_graphics
+    sysfs_kgsl
+    sysfs_memory
+    sysfs_mmc_host
+    sysfs_mpdecision
+    sysfs_msm_perf
+    sysfs_msm_power
+    sysfs_process_reclaim
+    sysfs_scsi_host
+} :file { write append };
+
+allow untrusted_app_25 {
+    sysfs_battery_supply
+    sysfs_cpu_boost
+    sysfs_devfreq
+    sysfs_devices_system_cpu
+    sysfs_graphics
+    sysfs_kgsl
+    sysfs_memory
+    sysfs_mmc_host
+    sysfs_mpdecision
+    sysfs_msm_perf
+    sysfs_msm_power
+    sysfs_process_reclaim
+    sysfs_scsi_host
+}:file { write append };
+つまり
+
+allow { untrusted_app untrusted_app_25 } {
+    sysfs_battery_supply
+    sysfs_cpu_boost
+    sysfs_devfreq
+    sysfs_devices_system_cpu
+    sysfs_graphics
+    sysfs_kgsl
+    sysfs_memory
+    sysfs_mmc_host
+    sysfs_mpdecision
+    sysfs_msm_perf
+    sysfs_msm_power
+    sysfs_process_reclaim
+    sysfs_scsi_host
+}:file { write append };
+
+いま、system/sepolicy/private/app_neverallows.te の66行目は
+
+neverallow all_untrusted_apps sysfs_type:file { no_w_file_perms no_x_file_perms };
+
+{ no_w_file_perms no_x_file_perms } = { append create link unlink relabelfrom rename setattr write no_x_file_perms } 
+                                    = { write append } { create link unlink relabelfrom rename setattr no_x_file_perms } 
+なので
+neverallow all_untrusted_apps sysfs_type:file { create link unlink relabelfrom rename setattr no_x_file_perms };
+neverallow all_untrusted_apps sysfs_type:file { write append };
+これに統合すると
+neverallow all_untrusted_apps sysfs_type:file { create link unlink relabelfrom rename setattr no_x_file_perms };
+neverallow { 
+    all_untrusted_apps
+    -untrusted_app
+    -untrusted_app_25
+} {
+    sysfs_type
+    -sysfs_battery_supply
+    -sysfs_cpu_boost
+    -sysfs_devfreq
+    -sysfs_devices_system_cpu
+    -sysfs_graphics
+    -sysfs_kgsl
+    -sysfs_memory
+    -sysfs_mmc_host
+    -sysfs_mpdecision
+    -sysfs_msm_perf
+    -sysfs_msm_power
+    -sysfs_process_reclaim
+    -sysfs_scsi_host
+}:file { write append };
