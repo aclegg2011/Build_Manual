@@ -1,0 +1,150 @@
+########################################################################
+エラーメッセージは
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow update_engine update_engine:capability { dac_read_search };
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow thermal-engine thermal-engine:capability { dac_read_search };
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow hal_iop_default hal_iop_default:capability { dac_read_search };
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow sensors sensors:capability { dac_read_search };
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow qti_init_shell qti_init_shell:capability { dac_read_search };
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow qlogd qlogd:capability { dac_read_search };
+libsepol.report_failure: neverallow on line 1382 of system/sepolicy/public/domain.te (or line 11329 of policy.conf) violated by allow rfs_access rfs_access:capability { dac_read_search };
+
+よって
+allow update_engine update_engine:capability { dac_read_search };
+allow thermal-engine thermal-engine:capability { dac_read_search };
+allow hal_iop_default hal_iop_default:capability { dac_read_search };
+allow sensors sensors:capability { dac_read_search };
+allow qti_init_shell qti_init_shell:capability { dac_read_search };
+allow qlogd qlogd:capability { dac_read_search };
+allow rfs_access rfs_access:capability { dac_read_search };
+
+つまり
+allow { update_engine thermal-engine hal_iop_default sensors qti_init_shell qlogd rfs_access } self:capability dac_read_search;
+************************************************************************
+system/sepolicy/public/domain.te の1382行目は
+
+neverallow { domain -traced_probes } self:capability dac_read_search;
+
+これに統合すると
+neverallow {
+   domain
+   -traced_probes 
+   -update_engine
+   -thermal-engine
+   -hal_iop_default
+   -sensors
+   -qti_init_shell
+   -qlogd rfs_access
+} self:capability dac_read_search;
+
+########################################################################
+エラーメッセージは
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow mmi mmi:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow hal_perf_default hal_perf_default:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow mpdecision mpdecision:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow port-bridge port-bridge:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow update_engine update_engine:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow msm_irqbalanced msm_irqbalanced:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow thermal-engine thermal-engine:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow hal_iop_default hal_iop_default:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow sensors sensors:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow qmuxd qmuxd:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow qti_init_shell qti_init_shell:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow qcomsysd qcomsysd:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow qlogd qlogd:capability { dac_override };
+libsepol.report_failure: neverallow on line 1381 of system/sepolicy/public/domain.te (or line 11328 of policy.conf) violated by allow rfs_access rfs_access:capability { dac_override };
+
+よって
+allow mmi mmi:capability { dac_override };
+allow hal_perf_default hal_perf_default:capability { dac_override };
+allow mpdecision mpdecision:capability { dac_override };
+allow port-bridge port-bridge:capability { dac_override };
+allow update_engine update_engine:capability { dac_override };
+allow msm_irqbalanced msm_irqbalanced:capability { dac_override };
+allow thermal-engine thermal-engine:capability { dac_override };
+allow hal_iop_default hal_iop_default:capability { dac_override };
+allow sensors sensors:capability { dac_override };
+allow qmuxd qmuxd:capability { dac_override };
+allow qti_init_shell qti_init_shell:capability { dac_override };
+allow qcomsysd qcomsysd:capability { dac_override };
+allow qlogd qlogd:capability { dac_override };
+allow rfs_access rfs_access:capability { dac_override };
+
+つまり
+allow { 
+    mmi
+    hal_perf_default
+    mpdecision
+    port-bridge
+    update_engine 
+    msm_irqbalanced
+    thermal-engine
+    hal_iop_default
+    sensors
+    qmuxd
+    qti_init_shell
+    qcomsysd
+    qlogd
+    rfs_access
+} self:capability { dac_override };
+ここで
+system/sepolicy/public/domain.te の1381行目は
+
+neverallow {
+  domain
+  -dnsmasq
+  -dumpstate
+  -init
+  -installd
+  -install_recovery
+  -lmkd
+  -netd
+  -perfprofd
+  -postinstall_dexopt
+  -recovery
+  -sdcardd
+  -tee
+  -ueventd
+  -uncrypt
+  -vendor_init
+  -vold
+  -vold_prepare_subdirs
+  -zygote
+} self:capability dac_override;
+
+に統合して
+neverallow {
+  domain
+  -dnsmasq
+  -dumpstate
+  -init
+  -installd
+  -install_recovery
+  -lmkd
+  -netd
+  -perfprofd
+  -postinstall_dexopt
+  -recovery
+  -sdcardd
+  -tee
+  -ueventd
+  -uncrypt
+  -vendor_init
+  -vold
+  -vold_prepare_subdirs
+  -zygote
+  ##
+  -mmi
+  -hal_perf_default
+  -mpdecision
+  -port-bridge
+  -update_engine 
+  -msm_irqbalanced
+  -thermal-engine
+  -hal_iop_default
+  -sensors
+  -qmuxd
+  -qti_init_shell
+  -qcomsysd
+  -qlogd
+  -rfs_access
+} self:capability dac_override;
