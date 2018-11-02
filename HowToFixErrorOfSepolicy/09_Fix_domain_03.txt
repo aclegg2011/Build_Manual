@@ -18,6 +18,7 @@ libsepol.report_failure: neverallow on line 80 of device/qcom/sepolicy-legacy/co
 libsepol.report_failure: neverallow on line 80 of device/qcom/sepolicy-legacy/common/domain.te (or line 48883 of policy.conf) violated by allow uncrypt uncrypt:capability { dac_override };
 libsepol.report_failure: neverallow on line 80 of device/qcom/sepolicy-legacy/common/domain.te (or line 48883 of policy.conf) violated by allow lmkd lmkd:capability { dac_override };
 
+
 よって
 allow vold vold:capability { dac_override };
 allow install_recovery install_recovery:capability { dac_override };
@@ -34,6 +35,9 @@ allow postinstall_dexopt postinstall_dexopt:capability { dac_override };
 allow ueventd ueventd:capability { dac_override };
 allow vold_prepare_subdirs vold_prepare_subdirs:capability { dac_override };
 allow recovery recovery:capability { dac_override };
+allow sdcardd sdcardd:capability { dac_override };
+allow uncrypt uncrypt:capability { dac_override };
+allow lmkd lmkd:capability { dac_override };
 
 allow {
   vold
@@ -51,5 +55,8 @@ allow {
   ueventd
   vold_prepare_subdirs
   recovery 
+  sdcardd
+  uncrypt
+  lmkd
 } self:capability { dac_override };
 上記を統合（詳細説明省略）
