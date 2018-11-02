@@ -198,4 +198,51 @@ neverallow {
     -sysfs_usb_uicc
     -sysfs_devices_system_cpu
 } :dir { write };
+****************************************************************
+sepolicy-legacy$ grep "type hbtp_kernel_sysfs," ./ -rns
+./common/file.te:189:type hbtp_kernel_sysfs, file_type, sysfs_type;
+[sepolicy-legacy$ grep "type sysfs_hsic_host_rdy," ./ -rns
+./common/file.te:148:type sysfs_hsic_host_rdy, sysfs_type, file_type;
+sepolicy-legacy$ grep "sysfs_ssr_toggle," ./ -rns
+./common/file.te:146:type sysfs_ssr_toggle,  sysfs_type, file_type;
+
+なので、下記はdevice/qcom/sepolicy-legacy/common/domain.te へ引っ越す
+neverallow {
+    domain
+    -init
+    -vendor_init
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+} :dir { create rmdir };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+} :dir { add_name remove_name };
+
+neverallow {
+    domain
+    -init
+    -vendor_init
+    -usb_uicc_daemon
+    -qti_init_shell
+} {
+    proc_type
+    sysfs_type
+    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
+    -sysfs_usb_uicc
+    -sysfs_devices_system_cpu
+} :dir { write };
+
+
+
 
