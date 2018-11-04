@@ -47,3 +47,5 @@ neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') 
 neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map append lock map };
 neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file open;
 neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file { read write create getattr setattr unlink open };
+
+
