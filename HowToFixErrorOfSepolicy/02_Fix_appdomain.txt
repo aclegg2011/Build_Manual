@@ -38,3 +38,6 @@ neverallow { appdomain -shell -$1 }                                             
 下記に集約できる。
 neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
 neverallow { appdomain -shell -$1 -platform_app -untrusted_app_25 -priv_app -radio -untrusted_app -location_app -system_app -dataservice_app } $1:file { ioctl read lock open };
+
+
+
