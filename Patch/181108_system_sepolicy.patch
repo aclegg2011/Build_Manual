@@ -1,0 +1,29 @@
+diff --git a/public/domain.te b/public/domain.te
+index 8d0b507b..5409b7cc 100644
+--- a/public/domain.te
++++ b/public/domain.te
+@@ -257,6 +257,7 @@ neverallow {
+   -healthd
+   -uncrypt
+   -tee
++  -update_engine
+ } self:capability sys_rawio;
+ 
+ # No process can map low memory (< CONFIG_LSM_MMAP_MIN_ADDR).
+@@ -410,11 +411,13 @@ neverallow { domain -recovery -kernel -update_engine with_asan(`-asan_extract')
+ 
+ # Don't allow mounting on top of /system files or directories
+ neverallow * exec_type:dir_file_class_set mounton;
+-neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file vendor_file_type }:dir_file_class_set mounton;
++neverallow { domain -init userdebug_or_eng(`-recovery') } vendor_file_type:dir_file_class_set mounton;
++neverallow { domain -init userdebug_or_eng(`-recovery') } system_file:file_class_set mounton;
++neverallow { domain -init userdebug_or_eng(`-recovery') -recovery } system_file:dir mounton;
+ 
+ # Nothing should be writing to files in the rootfs.
+-neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { create write setattr relabelto append unlink link rename };
+-neverallow { -update_engine } rootfs:file { create write setattr relabelto append unlink link rename };
++neverallow { domain userdebug_or_eng(`-recovery -update_engine') -update_engine } rootfs:file { create write setattr relabelto append unlink link rename };
++#neverallow { -update_engine } rootfs:file { create write setattr relabelto append unlink link rename };
+ 
+ # Restrict context mounts to specific types marked with
+ # the contextmount_type attribute.
