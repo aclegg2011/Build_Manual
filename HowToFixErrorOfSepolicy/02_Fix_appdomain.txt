@@ -14,30 +14,17 @@ app_domain(ssg_app)
 te_macros というマクロファイル中の
 neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
 でエラー発生。
+
 また、neverallow_macrosによると
 no_rw_file_perms = { no_w_file_perms     ioctl read lock open }
                    { no_w_file_perms } { ioctl read lock open }
-までが前置き。
-========================================================================
-エラーメッセージの前段
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by 
-を除外し、ssg_appを$1で置き換えると
-allow { platform_app untrusted_app_25 priv_app radio untrusted_app location_app system_app dataservice_app } $1:file { ioctl read lock open };
-となる。よって
+なので
+neverallow { appdomain -shell -$1 } $1:no_w_file_perms;
+neverallow { appdomain -shell -$1 } $1:{ ioctl read lock open };
+
+{ ioctl read lock open }を取り除くため
 neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
-は
+を
 neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
-neverallow { appdomain -shell -$1 } $1:file { ioctl read lock open };
-に分けることができる。
-========================================================================
-neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
-neverallow { appdomain -shell -$1 }                                                                               $1:file { ioctl read lock open };
-     allow { platform_app untrusted_app_25 priv_app radio untrusted_app location_app system_app dataservice_app } $1:file { ioctl read lock open };
-となって
-========================================================================
-下記に集約できる。
-neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
-neverallow { appdomain -shell -$1 -platform_app -untrusted_app_25 -priv_app -radio -untrusted_app -location_app -system_app -dataservice_app } $1:file { ioctl read lock open };
-
-
+に変更するのみ
 
