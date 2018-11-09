@@ -1,17 +1,13 @@
 エラーメッセージは
 libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow platform_app ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow untrusted_app_25 ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow priv_app ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow radio ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow untrusted_app ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow location_app ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow system_app ssg_app:file { ioctl read lock open };
-libsepol.report_failure: neverallow on line 34 of device/qcom/sepolicy-legacy/ssg/ssg_app.te (or line 69764 of policy.conf) violated by allow dataservice_app ssg_app:file { ioctl read lock open };
+や
+libsepol.report_failure: neverallow on line 2 of device/qcom/sepolicy-legacy/common/location_app.te (or line 56627 of policy.conf) violated by allow location_app poweroffalarm_app:file { ioctl read lock open };
 ========================================================================
-device/qcom/sepolicy-legacy/ssg/ssg_app.te の34行目は
-app_domain(ssg_app)
+これらは
+app_domain(ssg_app)などのマクロ
 で
 te_macros というマクロファイル中の
+neverallow { $1 -shell } { domain -$1 }:file no_rw_file_perms;
 neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
 でエラー発生。
 
@@ -19,12 +15,14 @@ neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
 no_rw_file_perms = { no_w_file_perms     ioctl read lock open }
                    { no_w_file_perms } { ioctl read lock open }
 なので
-neverallow { appdomain -shell -$1 } $1:no_w_file_perms;
-neverallow { appdomain -shell -$1 } $1:{ ioctl read lock open };
-
-{ ioctl read lock open }を取り除くため
-neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
-を
+neverallow { $1 -shell } { domain -$1 }:file no_w_file_perms;
 neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
-に変更するのみ
+neverallow { $1 -shell } { domain -$1 }:{ ioctl read lock open };
+neverallow { appdomain -shell -$1 } $1:{ ioctl read lock open };
+と上記は同じ。
+
+ここで、{ ioctl read lock open } を取り除くと
+neverallow { $1 -shell } { domain -$1 }:file no_w_file_perms;
+neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
+になる。
 
