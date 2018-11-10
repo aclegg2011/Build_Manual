@@ -1,0 +1,125 @@
+エラーメッセージ（一部編集）
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+MyOutput_B/LineageOS-15.1_hlte_original/target/product/hlte/obj/ETC/plat_sepolicy.cil_intermediates/plat_sepolicy.cil:4437
+from system/sepolicy/public/domain.te:416
+  (neverallow domain rootfs (file (write create setattr relabelto append unlink link rename)))
+    <root>
+    allow at /MyOutput_B/LineageOS-15.1_hlte_original/target/product/hlte/obj/ETC/plat_sepolicy.cil_intermediates/plat_sepolicy.cil:13179
+      (allow update_engine rootfs (file (ioctl read write create getattr setattr lock append map unlink rename open)))
+    <root>
+    allow at /MyOutput_B/LineageOS-15.1_hlte_original/target/product/hlte/obj/ETC/plat_sepolicy.cil_intermediates/plat_sepolicy.cil:13193
+      (allow update_engine rootfs (file (relabelfrom relabelto)))
+
+neverallow check failed at /home/kq/MyOutput_B/LineageOS-15.1_hlte_original/target/product/hlte/obj/ETC/plat_sepolicy.cil_intermediates/plat_sepolicy.cil:4184
+from system/sepolicy/public/domain.te:260
+  (neverallow base_typeattr_11 self (capability (sys_rawio)))
+    <root>
+    allow at /MyOutput_B/LineageOS-15.1_hlte_original/target/product/hlte/obj/ETC/plat_sepolicy.cil_intermediates/plat_sepolicy.cil:13165
+      (allow update_engine self (capability (dac_override dac_read_search sys_rawio)))
+    <root>
+    allow at /MyOutput_B/LineageOS-15.1_hlte_original/target/product/hlte/obj/ETC/plat_sepolicy.cil_intermediates/plat_sepolicy.cil:13172
+      (allow update_engine self (capability (chown fsetid sys_rawio)))
+
+Failed to generate binary
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+system/sepolicy/public/domain.te:416
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+（1）
+最初のエラーは
+system/sepolicy/public/domain.te:416
+なので
+system/sepolicy/public/domain.te の416行目を確認
+
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { create write setattr relabelto append unlink link rename };
+違反しているのは
+(allow update_engine rootfs (file (ioctl read write create getattr setattr lock append map unlink rename open)))
+これはCIL言語なので、
+     allow                                           update_engine rootfs:file { ioctl read write create getattr setattr lock append map unlink rename open }
+並べると
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { create write setattr relabelto append unlink link rename };
+     allow                                           update_engine rootfs:file { ioctl read write create getattr setattr lock append map unlink rename open }
+更に
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { relabelto link };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { create write setattr append unlink rename };
+     allow                                           update_engine rootfs:file { create write setattr append unlink rename };
+     allow                                           update_engine rootfs:file { ioctl read getattr lock map open };
+よって、3番目のコードを2番目に組込む。尚、4番目のコードはallow故に他で許可済みなので
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { relabelto link };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') -update_engine } rootfs:file { create write setattr append unlink rename };
+という風にできる。
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+（2）
+2番目のエラーは、下記が違反している
+(allow update_engine rootfs (file (relabelfrom relabelto)))
+書き換えると
+     allow                                          update_engine rootfs:file { relabelfrom relabelto };
+よって
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') } rootfs:file { relabelto link };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') -update_engine } rootfs:file { create write setattr append unlink rename };
+     allow                                                        update_engine   rootfs:file { relabelfrom relabelto };
+さらに3番目のコードを1番目のコードに取り込めるようにするため
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') }                rootfs:file { link };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') }                rootfs:file { relabelto };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') -update_engine } rootfs:file { create write setattr append unlink rename };
+     allow                                                        update_engine   rootfs:file { relabelto };
+     allow                                                        update_engine   rootfs:file { relabelfrom };
+3番目のコードを2番目に取り込み、5番目のコードはallow故に他で許可済みなので
+neverallow { domain userdebug_or_eng(`-recovery -update_engine')                } rootfs:file { link };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') -update_engine } rootfs:file { relabelto };
+neverallow { domain userdebug_or_eng(`-recovery -update_engine') -update_engine } rootfs:file { create write setattr append unlink rename }; 
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+system/sepolicy/public/domain.te:260
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+（1）
+最初のエラーは
+system/sepolicy/public/domain.te:260
+なので
+system/sepolicy/public/domain.te の260行目を確認
+
+neverallow {
+  domain
+  userdebug_or_eng(`-domain')
+  -kernel
+  -init
+  -recovery
+  -ueventd
+  -healthd
+  -uncrypt
+  -tee
+} self:capability sys_rawio;
+
+エラーは下記に違反
+(allow update_engine self (capability (dac_override dac_read_search sys_rawio)))
+書き換えると
+allow update_engine self:capability { dac_override dac_read_search sys_rawio }
+sys_rawioに着目して2つに分けると
+allow update_engine self:capability { dac_override dac_read_search }
+allow update_engine self:capability { sys_rawio }
+必要なのは、2番目なので、update_engineを排除すると
+neverallow {
+  domain
+  userdebug_or_eng(`-domain')
+  -kernel
+  -init
+  -recovery
+  -ueventd
+  -healthd
+  -uncrypt
+  -tee
+  -update_engine
+} self:capability sys_rawio;
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+2番目のエラーもエラーはsys_rawioだけなので、修正後は上記と同じ
+
+
+
+
+
+
+
+
+
+
+
