@@ -113,6 +113,37 @@ neverallow {
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 2番目のエラーもエラーはsys_rawioだけなので、修正後は上記と同じ
 
+もう一回エラーが出る。（こちらはlineage16.0で出るようなエラーフォーマット）
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+libsepol.report_failure: neverallow on line 414 of system/sepolicy/public/domain.te (or line 8805 of policy.conf)
+violated by allow recovery system_file:dir { mounton };
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+system/sepolicy/public/domain.te の414行目を確認
+
+neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file vendor_file_type }:dir_file_class_set mounton;
+違反内容は
+     allow                                     recovery     system_file                   :dir { mounton };
+なので
+neverallow { domain -init userdebug_or_eng(`-recovery') } { vendor_file_type }:dir_file_class_set mounton;
+neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file }:dir_file_class_set mounton;
+     allow                                     recovery     system_file  :dir                mounton;
+今、
+dir_file_class_set は { dir file_class_set }
+なので
+neverallow { domain -init userdebug_or_eng(`-recovery') } { vendor_file_type }:dir_file_class_set mounton;
+neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file }:file_class_set mounton;
+neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file }:dir mounton;
+     allow                                     recovery     system_file  :dir mounton;
+4番目のコードを3番目に取り込むと
+neverallow { domain -init userdebug_or_eng(`-recovery') } { vendor_file_type }:dir_file_class_set mounton;
+neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file }:file_class_set mounton;
+neverallow { domain -init userdebug_or_eng(`-recovery') -recovery } { system_file }:dir mounton;
+
+
+
+
+
 
 
 
