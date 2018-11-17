@@ -1,0 +1,977 @@
+diff --git a/prebuilts/api/26.0/private/storaged.te b/prebuilts/api/26.0/private/storaged.te
+index 96433b30..20075bfb 100644
+--- a/prebuilts/api/26.0/private/storaged.te
++++ b/prebuilts/api/26.0/private/storaged.te
+@@ -1,6 +1,9 @@
+ # storaged daemon
+ type storaged, domain, coredomain, mlstrustedsubject;
+ type storaged_exec, exec_type, file_type;
++#============= storaged ==============
++allow storaged sysfs:file { open read getattr };
++allow system_app storaged:binder call;
+ 
+ init_daemon_domain(storaged)
+ 
+diff --git a/prebuilts/api/26.0/public/file.te b/prebuilts/api/26.0/public/file.te
+index 057af413..5f418e96 100644
+--- a/prebuilts/api/26.0/public/file.te
++++ b/prebuilts/api/26.0/public/file.te
+@@ -335,3 +335,11 @@ allow postinstall_file self:filesystem associate;
+ # Should be:
+ #   type apk_data_file, file_type, data_file_type;
+ neverallow fs_type file_type:filesystem associate;
++
++allow init proc:file { getattr open read setattr write };
++allow init sysfs:file { open read setattr write };
++allow init sysfs_batteryinfo:file { open read };
++allow init sysfs_bluetooth_writable:file setattr;
++allow init sysfs_devices_system_cpu:file write;
++allow init debugfs:dir mounton;s
++allow init vendor_file:file execute_no_trans;
+diff --git a/prebuilts/api/26.0/public/healthd.te b/prebuilts/api/26.0/public/healthd.te
+index c0a7bec7..e16abaaf 100644
+--- a/prebuilts/api/26.0/public/healthd.te
++++ b/prebuilts/api/26.0/public/healthd.te
+@@ -28,7 +28,7 @@ hal_client_domain(healthd, hal_health)
+ 
+ # Write to state file.
+ # TODO:  Split into a separate type?
+-allow healthd sysfs:file write;
++allow healthd sysfs:file { open read write getattr};
+ 
+ # TODO: added to match above sysfs rule. Remove me?
+ allow healthd sysfs_usb:file write;
+diff --git a/prebuilts/api/26.0/public/hwservice.te b/prebuilts/api/26.0/public/hwservice.te
+index 65c52a23..bc774416 100644
+--- a/prebuilts/api/26.0/public/hwservice.te
++++ b/prebuilts/api/26.0/public/hwservice.te
+@@ -43,3 +43,6 @@ type hidl_manager_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type hidl_memory_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type hidl_token_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_wifi_keystore_hwservice, hwservice_manager_type, coredomain_hwservice;
++
++allow init hal_sensors_hwservice:hwservice_manager { add find };
++allow init hidl_base_hwservice:hwservice_manager add;
+diff --git a/prebuilts/api/26.0/public/hwservicemanager.te b/prebuilts/api/26.0/public/hwservicemanager.te
+index 1ffd2a67..3d663c21 100644
+--- a/prebuilts/api/26.0/public/hwservicemanager.te
++++ b/prebuilts/api/26.0/public/hwservicemanager.te
+@@ -20,3 +20,8 @@ allow hwservicemanager hwservice_contexts_file:file r_file_perms;
+ 
+ # Check SELinux permissions.
+ selinux_check_access(hwservicemanager)
++
++#============= hwservicemanager ==============
++allow hwservicemanager init:dir search;
++allow hwservicemanager init:file { open read };
++allow hwservicemanager init:process getattr;
+diff --git a/prebuilts/api/26.0/public/init.te b/prebuilts/api/26.0/public/init.te
+index 6d43ef46..cd7c60fa 100644
+--- a/prebuilts/api/26.0/public/init.te
++++ b/prebuilts/api/26.0/public/init.te
+@@ -1,5 +1,10 @@
+ # init is its own domain.
+ type init, domain, mlstrustedsubject;
++#============= init ==============
++allow init hwservicemanager:binder call;
++allow init input_device:chr_file ioctl;
++allow init sysfs_batteryinfo:file setattr;
++allow init vendor_file:file execmod;
+ 
+ # The init domain is entered by execing init.
+ type init_exec, exec_type, file_type;
+diff --git a/prebuilts/api/26.0/public/mediaserver.te b/prebuilts/api/26.0/public/mediaserver.te
+index 6efaf0fd..23db3a66 100644
+--- a/prebuilts/api/26.0/public/mediaserver.te
++++ b/prebuilts/api/26.0/public/mediaserver.te
+@@ -1,6 +1,8 @@
+ # mediaserver - multimedia daemon
+ type mediaserver, domain;
+ type mediaserver_exec, exec_type, file_type;
++#============= mediaserver ==============
++allow mediaserver device:dir { open read };
+ 
+ typeattribute mediaserver mlstrustedsubject;
+ 
+diff --git a/prebuilts/api/26.0/public/rild.te b/prebuilts/api/26.0/public/rild.te
+index 14420dff..23d76303 100644
+--- a/prebuilts/api/26.0/public/rild.te
++++ b/prebuilts/api/26.0/public/rild.te
+@@ -1,6 +1,8 @@
+ # rild - radio interface layer daemon
+ type rild, domain;
+ hal_server_domain(rild, hal_telephony)
++#============= rild ==============
++allow rild system_data_file:lnk_file read;
+ 
+ net_domain(rild)
+ allowxperm rild self:udp_socket ioctl priv_sock_ioctls;
+diff --git a/prebuilts/api/26.0/public/surfaceflinger.te b/prebuilts/api/26.0/public/surfaceflinger.te
+index ae00287d..88f643cd 100644
+--- a/prebuilts/api/26.0/public/surfaceflinger.te
++++ b/prebuilts/api/26.0/public/surfaceflinger.te
+@@ -1,2 +1,5 @@
+ # surfaceflinger - display compositor service
+ type surfaceflinger, domain;
++
++#============= surfaceflinger ==============
++allow surfaceflinger sysfs:file { open read getattr };
+diff --git a/prebuilts/api/26.0/public/system_app.te b/prebuilts/api/26.0/public/system_app.te
+index 023058ee..4146cdd8 100644
+--- a/prebuilts/api/26.0/public/system_app.te
++++ b/prebuilts/api/26.0/public/system_app.te
+@@ -5,3 +5,14 @@
+ ###
+ 
+ type system_app, domain;
++
++#============= system_app ==============
++allow system_app { proc_pagetypeinfo sysfs_zram }:file { open read getattr };
++allow system_app sysfs_zram:dir search;
++allow system_app {
++    installd
++#   perfprofd
++    netd
++    wificond
++    vold
++}:binder call;
+diff --git a/prebuilts/api/26.0/public/system_server.te b/prebuilts/api/26.0/public/system_server.te
+index 805d6175..0d8e9a5f 100644
+--- a/prebuilts/api/26.0/public/system_server.te
++++ b/prebuilts/api/26.0/public/system_server.te
+@@ -3,3 +3,7 @@
+ # Most of the framework services run in this process.
+ #
+ type system_server, domain;
++
++#============= system_server ==============
++allow system_server init:binder call;
++allow system_server proc:file { open read getattr };
+diff --git a/prebuilts/api/26.0/public/ueventd.te b/prebuilts/api/26.0/public/ueventd.te
+index 4c77e11e..4971001e 100644
+--- a/prebuilts/api/26.0/public/ueventd.te
++++ b/prebuilts/api/26.0/public/ueventd.te
+@@ -1,6 +1,8 @@
+ # ueventd seclabel is specified in init.rc since
+ # it lives in the rootfs and has no unique file type.
+ type ueventd, domain;
++#============= ueventd ==============
++allow ueventd proc:file { getattr open read };
+ 
+ # Write to /dev/kmsg.
+ allow ueventd kmsg_device:chr_file rw_file_perms;
+diff --git a/prebuilts/api/27.0/private/storaged.te b/prebuilts/api/27.0/private/storaged.te
+index 20377e04..5b74221d 100644
+--- a/prebuilts/api/27.0/private/storaged.te
++++ b/prebuilts/api/27.0/private/storaged.te
+@@ -1,6 +1,9 @@
+ # storaged daemon
+ type storaged, domain, coredomain, mlstrustedsubject;
+ type storaged_exec, exec_type, file_type;
++#============= storaged ==============
++allow storaged sysfs:file { open read getattr };
++allow system_app storaged:binder call;
+ 
+ init_daemon_domain(storaged)
+ 
+diff --git a/prebuilts/api/27.0/public/file.te b/prebuilts/api/27.0/public/file.te
+index bcdc4612..8841743a 100644
+--- a/prebuilts/api/27.0/public/file.te
++++ b/prebuilts/api/27.0/public/file.te
+@@ -345,3 +345,11 @@ with_asan(`type asanwrapper_exec, exec_type, file_type;')
+ # Should be:
+ #   type apk_data_file, file_type, data_file_type;
+ neverallow fs_type file_type:filesystem associate;
++
++allow init proc:file { getattr open read setattr write };
++allow init sysfs:file { open read setattr write };
++allow init sysfs_batteryinfo:file { open read };
++allow init sysfs_bluetooth_writable:file setattr;
++allow init sysfs_devices_system_cpu:file write;
++allow init debugfs:dir mounton;
++allow init vendor_file:file execute_no_trans;
+diff --git a/prebuilts/api/27.0/public/healthd.te b/prebuilts/api/27.0/public/healthd.te
+index c0a7bec7..e16abaaf 100644
+--- a/prebuilts/api/27.0/public/healthd.te
++++ b/prebuilts/api/27.0/public/healthd.te
+@@ -28,7 +28,7 @@ hal_client_domain(healthd, hal_health)
+ 
+ # Write to state file.
+ # TODO:  Split into a separate type?
+-allow healthd sysfs:file write;
++allow healthd sysfs:file { open read write getattr};
+ 
+ # TODO: added to match above sysfs rule. Remove me?
+ allow healthd sysfs_usb:file write;
+diff --git a/prebuilts/api/27.0/public/hwservice.te b/prebuilts/api/27.0/public/hwservice.te
+index 97b9b8d1..9f1f17de 100644
+--- a/prebuilts/api/27.0/public/hwservice.te
++++ b/prebuilts/api/27.0/public/hwservice.te
+@@ -50,3 +50,6 @@ type hidl_token_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_net_netd_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_wifi_keystore_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type thermalcallback_hwservice, hwservice_manager_type;
++
++allow init hal_sensors_hwservice:hwservice_manager { add find };
++allow init hidl_base_hwservice:hwservice_manager add;
+diff --git a/prebuilts/api/27.0/public/hwservicemanager.te b/prebuilts/api/27.0/public/hwservicemanager.te
+index 1ffd2a67..3d663c21 100644
+--- a/prebuilts/api/27.0/public/hwservicemanager.te
++++ b/prebuilts/api/27.0/public/hwservicemanager.te
+@@ -20,3 +20,8 @@ allow hwservicemanager hwservice_contexts_file:file r_file_perms;
+ 
+ # Check SELinux permissions.
+ selinux_check_access(hwservicemanager)
++
++#============= hwservicemanager ==============
++allow hwservicemanager init:dir search;
++allow hwservicemanager init:file { open read };
++allow hwservicemanager init:process getattr;
+diff --git a/prebuilts/api/27.0/public/init.te b/prebuilts/api/27.0/public/init.te
+index e6162a93..f111d15f 100644
+--- a/prebuilts/api/27.0/public/init.te
++++ b/prebuilts/api/27.0/public/init.te
+@@ -1,5 +1,10 @@
+ # init is its own domain.
+ type init, domain, mlstrustedsubject;
++#============= init ==============
++allow init hwservicemanager:binder call;
++allow init input_device:chr_file ioctl;
++allow init sysfs_batteryinfo:file setattr;
++allow init vendor_file:file execmod;
+ 
+ # The init domain is entered by execing init.
+ type init_exec, exec_type, file_type;
+diff --git a/prebuilts/api/27.0/public/mediaserver.te b/prebuilts/api/27.0/public/mediaserver.te
+index 6efaf0fd..23db3a66 100644
+--- a/prebuilts/api/27.0/public/mediaserver.te
++++ b/prebuilts/api/27.0/public/mediaserver.te
+@@ -1,6 +1,8 @@
+ # mediaserver - multimedia daemon
+ type mediaserver, domain;
+ type mediaserver_exec, exec_type, file_type;
++#============= mediaserver ==============
++allow mediaserver device:dir { open read };
+ 
+ typeattribute mediaserver mlstrustedsubject;
+ 
+diff --git a/prebuilts/api/27.0/public/rild.te b/prebuilts/api/27.0/public/rild.te
+index 59cfd900..b7b89b3b 100644
+--- a/prebuilts/api/27.0/public/rild.te
++++ b/prebuilts/api/27.0/public/rild.te
+@@ -1,6 +1,8 @@
+ # rild - radio interface layer daemon
+ type rild, domain;
+ hal_server_domain(rild, hal_telephony)
++#============= rild ==============
++allow rild system_data_file:lnk_file read;
+ 
+ net_domain(rild)
+ allowxperm rild self:udp_socket ioctl priv_sock_ioctls;
+diff --git a/prebuilts/api/27.0/public/surfaceflinger.te b/prebuilts/api/27.0/public/surfaceflinger.te
+index ae00287d..88f643cd 100644
+--- a/prebuilts/api/27.0/public/surfaceflinger.te
++++ b/prebuilts/api/27.0/public/surfaceflinger.te
+@@ -1,2 +1,5 @@
+ # surfaceflinger - display compositor service
+ type surfaceflinger, domain;
++
++#============= surfaceflinger ==============
++allow surfaceflinger sysfs:file { open read getattr };
+diff --git a/prebuilts/api/27.0/public/system_app.te b/prebuilts/api/27.0/public/system_app.te
+index 023058ee..4146cdd8 100644
+--- a/prebuilts/api/27.0/public/system_app.te
++++ b/prebuilts/api/27.0/public/system_app.te
+@@ -5,3 +5,14 @@
+ ###
+ 
+ type system_app, domain;
++
++#============= system_app ==============
++allow system_app { proc_pagetypeinfo sysfs_zram }:file { open read getattr };
++allow system_app sysfs_zram:dir search;
++allow system_app {
++    installd
++#   perfprofd
++    netd
++    wificond
++    vold
++}:binder call;
+diff --git a/prebuilts/api/27.0/public/system_server.te b/prebuilts/api/27.0/public/system_server.te
+index 805d6175..0d8e9a5f 100644
+--- a/prebuilts/api/27.0/public/system_server.te
++++ b/prebuilts/api/27.0/public/system_server.te
+@@ -3,3 +3,7 @@
+ # Most of the framework services run in this process.
+ #
+ type system_server, domain;
++
++#============= system_server ==============
++allow system_server init:binder call;
++allow system_server proc:file { open read getattr };
+diff --git a/prebuilts/api/27.0/public/ueventd.te b/prebuilts/api/27.0/public/ueventd.te
+index 212087e5..ec8f89aa 100644
+--- a/prebuilts/api/27.0/public/ueventd.te
++++ b/prebuilts/api/27.0/public/ueventd.te
+@@ -1,6 +1,8 @@
+ # ueventd seclabel is specified in init.rc since
+ # it lives in the rootfs and has no unique file type.
+ type ueventd, domain;
++#============= ueventd ==============
++allow ueventd proc:file { getattr open read };
+ 
+ # Write to /dev/kmsg.
+ allow ueventd kmsg_device:chr_file rw_file_perms;
+diff --git a/prebuilts/api/28.0/private/storaged.te b/prebuilts/api/28.0/private/storaged.te
+index 8ad872f6..9b5868fc 100644
+--- a/prebuilts/api/28.0/private/storaged.te
++++ b/prebuilts/api/28.0/private/storaged.te
+@@ -1,6 +1,9 @@
+ # storaged daemon
+ type storaged, domain, coredomain, mlstrustedsubject;
+ type storaged_exec, exec_type, file_type;
++#============= storaged ==============
++allow storaged sysfs:file { open read getattr };
++allow system_app storaged:binder call;
+ 
+ init_daemon_domain(storaged)
+ 
+diff --git a/prebuilts/api/28.0/private/surfaceflinger.te b/prebuilts/api/28.0/private/surfaceflinger.te
+index e64b8de2..e2f1a072 100644
+--- a/prebuilts/api/28.0/private/surfaceflinger.te
++++ b/prebuilts/api/28.0/private/surfaceflinger.te
+@@ -14,6 +14,7 @@ read_runtime_log_tags(surfaceflinger)
+ hal_client_domain(surfaceflinger, hal_graphics_allocator)
+ hal_client_domain(surfaceflinger, hal_graphics_composer)
+ hal_client_domain(surfaceflinger, hal_configstore)
++hal_client_domain(surfaceflinger, hal_power)
+ allow surfaceflinger hidl_token_hwservice:hwservice_manager find;
+ 
+ # Perform Binder IPC.
+diff --git a/prebuilts/api/28.0/public/file.te b/prebuilts/api/28.0/public/file.te
+index a4051b2d..9c642360 100644
+--- a/prebuilts/api/28.0/public/file.te
++++ b/prebuilts/api/28.0/public/file.te
+@@ -71,7 +71,7 @@ type sysfs_uio, sysfs_type, fs_type;
+ type sysfs_batteryinfo, fs_type, sysfs_type;
+ type sysfs_bluetooth_writable, fs_type, sysfs_type, mlstrustedobject;
+ type sysfs_dm, fs_type, sysfs_type;
+-type sysfs_dt_firmware_android, fs_type, sysfs_type;
++type sysfs_dt_firmware_android, fs_type, sysfs_type, proc_type;
+ type sysfs_ipv4, fs_type, sysfs_type;
+ type sysfs_kernel_notes, fs_type, sysfs_type, mlstrustedobject;
+ type sysfs_leds, fs_type, sysfs_type;
+@@ -412,3 +412,11 @@ type audiohal_data_file, file_type, data_file_type, core_data_file_type;
+ # Should be:
+ #   type apk_data_file, file_type, data_file_type;
+ neverallow fs_type file_type:filesystem associate;
++
++allow init proc:file { getattr open read setattr write };
++allow init sysfs:file { open read setattr write };
++allow init sysfs_batteryinfo:file { open read };
++allow init sysfs_bluetooth_writable:file setattr;
++allow init sysfs_devices_system_cpu:file write;
++allow init debugfs:dir mounton;
++allow init vendor_file:file execute_no_trans;
+diff --git a/prebuilts/api/28.0/public/healthd.te b/prebuilts/api/28.0/public/healthd.te
+index 8a1d3ec2..4fb2e5ae 100644
+--- a/prebuilts/api/28.0/public/healthd.te
++++ b/prebuilts/api/28.0/public/healthd.te
+@@ -1,6 +1,7 @@
+ # healthd - battery/charger monitoring service daemon
+ type healthd, domain;
+ type healthd_exec, exec_type, file_type;
++allow healthd sysfs:file { open read write getattr};
+ 
+ # Write to /dev/kmsg
+ allow healthd kmsg_device:chr_file rw_file_perms;
+diff --git a/prebuilts/api/28.0/public/hwservice.te b/prebuilts/api/28.0/public/hwservice.te
+index 5fba86ac..9e49d29d 100644
+--- a/prebuilts/api/28.0/public/hwservice.te
++++ b/prebuilts/api/28.0/public/hwservice.te
+@@ -60,3 +60,6 @@ type hidl_token_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_net_netd_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_wifi_keystore_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type thermalcallback_hwservice, hwservice_manager_type;
++
++allow init hal_sensors_hwservice:hwservice_manager { add find };
++allow init hidl_base_hwservice:hwservice_manager add;
+diff --git a/prebuilts/api/28.0/public/hwservicemanager.te b/prebuilts/api/28.0/public/hwservicemanager.te
+index 1ffd2a67..3d663c21 100644
+--- a/prebuilts/api/28.0/public/hwservicemanager.te
++++ b/prebuilts/api/28.0/public/hwservicemanager.te
+@@ -20,3 +20,8 @@ allow hwservicemanager hwservice_contexts_file:file r_file_perms;
+ 
+ # Check SELinux permissions.
+ selinux_check_access(hwservicemanager)
++
++#============= hwservicemanager ==============
++allow hwservicemanager init:dir search;
++allow hwservicemanager init:file { open read };
++allow hwservicemanager init:process getattr;
+diff --git a/prebuilts/api/28.0/public/init.te b/prebuilts/api/28.0/public/init.te
+index dafc06f9..cad617c4 100644
+--- a/prebuilts/api/28.0/public/init.te
++++ b/prebuilts/api/28.0/public/init.te
+@@ -1,5 +1,10 @@
+ # init is its own domain.
+ type init, domain, mlstrustedsubject;
++#============= init ==============
++allow init hwservicemanager:binder call;
++allow init input_device:chr_file ioctl;
++allow init sysfs_batteryinfo:file setattr;
++allow init vendor_file:file execmod;
+ 
+ # The init domain is entered by execing init.
+ type init_exec, exec_type, file_type;
+diff --git a/prebuilts/api/28.0/public/mediaserver.te b/prebuilts/api/28.0/public/mediaserver.te
+index f0c94edc..a5a9a47b 100644
+--- a/prebuilts/api/28.0/public/mediaserver.te
++++ b/prebuilts/api/28.0/public/mediaserver.te
+@@ -1,6 +1,8 @@
+ # mediaserver - multimedia daemon
+ type mediaserver, domain;
+ type mediaserver_exec, exec_type, file_type;
++#============= mediaserver ==============
++allow mediaserver device:dir { open read };
+ 
+ typeattribute mediaserver mlstrustedsubject;
+ 
+diff --git a/prebuilts/api/28.0/public/surfaceflinger.te b/prebuilts/api/28.0/public/surfaceflinger.te
+index ae00287d..88f643cd 100644
+--- a/prebuilts/api/28.0/public/surfaceflinger.te
++++ b/prebuilts/api/28.0/public/surfaceflinger.te
+@@ -1,2 +1,5 @@
+ # surfaceflinger - display compositor service
+ type surfaceflinger, domain;
++
++#============= surfaceflinger ==============
++allow surfaceflinger sysfs:file { open read getattr };
+diff --git a/prebuilts/api/28.0/public/system_app.te b/prebuilts/api/28.0/public/system_app.te
+index 023058ee..4146cdd8 100644
+--- a/prebuilts/api/28.0/public/system_app.te
++++ b/prebuilts/api/28.0/public/system_app.te
+@@ -5,3 +5,14 @@
+ ###
+ 
+ type system_app, domain;
++
++#============= system_app ==============
++allow system_app { proc_pagetypeinfo sysfs_zram }:file { open read getattr };
++allow system_app sysfs_zram:dir search;
++allow system_app {
++    installd
++#   perfprofd
++    netd
++    wificond
++    vold
++}:binder call;
+diff --git a/prebuilts/api/28.0/public/system_server.te b/prebuilts/api/28.0/public/system_server.te
+index 805d6175..0d8e9a5f 100644
+--- a/prebuilts/api/28.0/public/system_server.te
++++ b/prebuilts/api/28.0/public/system_server.te
+@@ -3,3 +3,7 @@
+ # Most of the framework services run in this process.
+ #
+ type system_server, domain;
++
++#============= system_server ==============
++allow system_server init:binder call;
++allow system_server proc:file { open read getattr };
+diff --git a/prebuilts/api/28.0/public/ueventd.te b/prebuilts/api/28.0/public/ueventd.te
+index 9b9eacb2..89a58e6a 100644
+--- a/prebuilts/api/28.0/public/ueventd.te
++++ b/prebuilts/api/28.0/public/ueventd.te
+@@ -1,6 +1,8 @@
+ # ueventd seclabel is specified in init.rc since
+ # it lives in the rootfs and has no unique file type.
+ type ueventd, domain;
++#============= ueventd ==============
++allow ueventd proc:file { getattr open read };
+ 
+ # Write to /dev/kmsg.
+ allow ueventd kmsg_device:chr_file rw_file_perms;
+diff --git a/private/app_neverallows.te b/private/app_neverallows.te
+index 8d9ccd67..18e802e8 100644
+--- a/private/app_neverallows.te
++++ b/private/app_neverallows.te
+@@ -63,7 +63,7 @@ neverallow all_untrusted_apps file_type:file link;
+ neverallow all_untrusted_apps sysfs_mac_address:file no_rw_file_perms;
+ 
+ # Do not allow any write access to files in /sys
+-neverallow all_untrusted_apps sysfs_type:file { no_w_file_perms no_x_file_perms };
++neverallow all_untrusted_apps sysfs_type:file { create link unlink relabelfrom rename setattr no_x_file_perms };
+ 
+ # Apps may never access the default sysfs label.
+ neverallow all_untrusted_apps sysfs:file no_rw_file_perms;
+diff --git a/private/isolated_app.te b/private/isolated_app.te
+index a6276b38..1ea69b87 100644
+--- a/private/isolated_app.te
++++ b/private/isolated_app.te
+@@ -116,4 +116,4 @@ neverallow isolated_app {
+   sysfs_type
+   -sysfs_devices_system_cpu
+   -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
+-}:file no_rw_file_perms;
++}:file no_w_file_perms;
+diff --git a/private/storaged.te b/private/storaged.te
+index 8ad872f6..3f141af6 100644
+--- a/private/storaged.te
++++ b/private/storaged.te
+@@ -1,12 +1,19 @@
+ # storaged daemon
+ type storaged, domain, coredomain, mlstrustedsubject;
+ type storaged_exec, exec_type, file_type;
++#============= storaged ==============
++allow storaged sysfs:file { open read getattr };
++allow system_app storaged:binder call;
+ 
+ init_daemon_domain(storaged)
+ 
+ # Read access to pseudo filesystems
+ r_dir_file(storaged, proc_net)
+ r_dir_file(storaged, domain)
++r_dir_file(storaged, sysfs_disk_stat)
++# Allow read access to /sys/block/mmcblk0/stat or /sys/block/sda/stat.
++# Implementations typically have symlinks to vendor specific files.
++# Vendors should mark sysfs_disk_stat on all files read by storaged.
+ 
+ # Read /proc/uid_io/stats
+ allow storaged proc_uid_io_stats:file r_file_perms;
+diff --git a/private/surfaceflinger.te b/private/surfaceflinger.te
+index e64b8de2..e2f1a072 100644
+--- a/private/surfaceflinger.te
++++ b/private/surfaceflinger.te
+@@ -14,6 +14,7 @@ read_runtime_log_tags(surfaceflinger)
+ hal_client_domain(surfaceflinger, hal_graphics_allocator)
+ hal_client_domain(surfaceflinger, hal_graphics_composer)
+ hal_client_domain(surfaceflinger, hal_configstore)
++hal_client_domain(surfaceflinger, hal_power)
+ allow surfaceflinger hidl_token_hwservice:hwservice_manager find;
+ 
+ # Perform Binder IPC.
+diff --git a/private/webview_zygote.te b/private/webview_zygote.te
+index 55b268a3..9b5f7060 100644
+--- a/private/webview_zygote.te
++++ b/private/webview_zygote.te
+@@ -51,6 +51,8 @@ dontaudit webview_zygote mnt_expand_file:dir getattr;
+ # app_process zygote
+ dontaudit webview_zygote dex2oat_exec:file execute;
+ 
++allow webview_zygote ion_device:chr_file r_file_perms;
++
+ # Get seapp_contexts
+ allow webview_zygote seapp_contexts_file:file r_file_perms;
+ # Check validity of SELinux context before use.
+diff --git a/public/domain.te b/public/domain.te
+index 5131c2b0..ecf25e5b 100644
+--- a/public/domain.te
++++ b/public/domain.te
+@@ -323,7 +323,20 @@ neverallow {
+   -healthd
+   -uncrypt
+   -tee
+-} self:global_capability_class_set sys_rawio;
++} self:cap_userns sys_rawio;
++
++neverallow {
++  domain
++  userdebug_or_eng(`-domain')
++  -kernel
++  -init
++  -recovery
++  -ueventd
++  -healthd
++  -uncrypt
++  -tee
++  -update_engine
++} self:capability sys_rawio;
+ 
+ # No process can map low memory (< CONFIG_LSM_MMAP_MIN_ADDR).
+ neverallow * self:memprotect mmap_zero;
+@@ -401,7 +414,7 @@ neverallow * init:process ptrace;
+ 
+ # Init can't do anything with binder calls. If this neverallow rule is being
+ # triggered, it's probably due to a service with no SELinux domain.
+-neverallow * init:binder *;
++neverallow { -system_server} init:binder *;
+ neverallow * vendor_init:binder *;
+ 
+ # Don't allow raw read/write/open access to block_device
+@@ -449,7 +462,7 @@ neverallow {
+     -appdomain # for oemfs
+     -bootanim # for oemfs
+     -recovery # for /tmp/update_binary in tmpfs
+-} { fs_type -rootfs }:file execute;
++} { fs_type -rootfs -binder_in_vendor_violators }:file execute;
+ 
+ # Files from cache should never be executed
+ neverallow domain { cache_file cache_backup_file cache_private_backup_file cache_recovery_file }:file execute;
+@@ -481,23 +494,28 @@ neverallow { domain -init } properties_serial:file { no_w_file_perms no_x_file_p
+ # These partitions are intended to be read-only and must never be
+ # modified. Doing so would violate important Android security guarantees
+ # and invalidate dm-verity signatures.
+-neverallow {
+-    domain
+-    with_asan(`-asan_extract')
+-} {
+-    system_file
+-    vendor_file_type
+-    exec_type
+-}:dir_file_class_set { create write setattr relabelfrom append unlink link rename };
+-
+-neverallow { domain -kernel with_asan(`-asan_extract') } { system_file vendor_file_type exec_type }:dir_file_class_set relabelto;
++neverallow { domain with_asan(`-asan_extract') } { system_file vendor_file_type exec_type }:dir_file_class_set { link };
++neverallow { domain with_asan(`-asan_extract') } { vendor_file_type exec_type }:dir_file_class_set { write create setattr rename append unlink relabelfrom };
++neverallow { domain with_asan(`-asan_extract') } system_file:{ dir devfile_class_set lnk_file sock_file fifo_file } { relabelfrom };
++neverallow { domain with_asan(`-asan_extract') } system_file:{ dir devfile_class_set  sock_file fifo_file } { append unlink };
++neverallow { domain with_asan(`-asan_extract') } system_file:{ devfile_class_set  sock_file fifo_file } { write create setattr rename };
++neverallow { domain with_asan(`-asan_extract') -update_engine } system_file:dir { write create setattr rename };
++neverallow { domain with_asan(`-asan_extract') -update_engine } system_file:lnk_file { write create setattr rename append unlink };
++neverallow { domain with_asan(`-asan_extract') -update_engine } system_file:file { write create setattr rename append unlink relabelfrom };
++
++neverallow { domain -kernel with_asan(`-asan_extract') } { vendor_file_type exec_type }:dir_file_class_set relabelto;
++neverallow { domain -kernel with_asan(`-asan_extract') } system_file:{ dir devfile_class_set lnk_file sock_file fifo_file } relabelto;
++neverallow { domain -kernel with_asan(`-asan_extract') -update_engine } system_file:file relabelto;
+ 
+ # Don't allow mounting on top of /system files or directories
+ neverallow * exec_type:dir_file_class_set mounton;
+-neverallow { domain -init } { system_file vendor_file_type }:dir_file_class_set mounton;
++neverallow { domain -init } { vendor_file_type }:dir_file_class_set mounton;
++neverallow { domain -init } system_file:file_class_set mounton;
++neverallow { domain -init -recovery } system_file:dir mounton;
+ 
+ # Nothing should be writing to files in the rootfs.
+-neverallow { domain userdebug_or_eng(`-recovery') } rootfs:file { create write setattr relabelto append unlink link rename };
++neverallow { domain userdebug_or_eng(`-recovery') } rootfs:file { link };
++neverallow { domain userdebug_or_eng(`-recovery') -update_engine } rootfs:file { create write setattr relabelto append unlink rename };
+ 
+ # Restrict context mounts to specific types marked with
+ # the contextmount_type attribute.
+@@ -1174,7 +1192,18 @@ neverallow {
+   -installd # for relabelfrom and unlink, check for this in explicit neverallow
+   -vold_prepare_subdirs # For unlink
+   with_asan(`-asan_extract')
+-} system_data_file:file no_w_file_perms;
++} system_data_file:file { link relabelfrom };
++
++neverallow {
++  domain
++  -system_server
++  -system_app
++  -init
++  -installd # for relabelfrom and unlink, check for this in explicit neverallow
++  -vold_prepare_subdirs # For unlink
++  with_asan(`-asan_extract')
++  -update_engine
++} system_data_file:file { write create setattr append unlink rename };
+ # do not grant anything greater than r_file_perms and relabelfrom unlink
+ # to installd
+ neverallow installd system_data_file:file ~{ r_file_perms relabelfrom unlink };
+@@ -1358,28 +1387,28 @@ full_treble_only(`
+ # Minimize dac_override and dac_read_search.
+ # Instead of granting them it is usually better to add the domain to
+ # a Unix group or change the permissions of a file.
+-neverallow {
+-  domain
+-  -dnsmasq
+-  -dumpstate
+-  -init
+-  -installd
+-  -install_recovery
+-  -lmkd
+-  -netd
+-  -perfprofd
+-  -postinstall_dexopt
+-  -recovery
+-  -sdcardd
+-  -tee
+-  -ueventd
+-  -uncrypt
+-  -vendor_init
+-  -vold
+-  -vold_prepare_subdirs
+-  -zygote
+-} self:capability dac_override;
+-neverallow { domain -traced_probes } self:capability dac_read_search;
++#neverallow {
++#  domain
++#  -dnsmasq
++#  -dumpstate
++#  -init
++#  -installd
++#  -install_recovery
++#  -lmkd
++#  -netd
++#  -perfprofd
++#  -postinstall_dexopt
++#  -recovery
++#  -sdcardd
++#  -tee
++#  -ueventd
++#  -uncrypt
++#  -vendor_init
++#  -vold
++#  -vold_prepare_subdirs
++#  -zygote
++#} self:capability dac_override;
++#neverallow { domain -traced_probes } self:capability dac_read_search;
+ 
+ # If an already existing file is opened with O_CREAT, the kernel might generate
+ # a false report of a create denial. Silence these denials and make sure that
+@@ -1387,13 +1416,13 @@ neverallow { domain -traced_probes } self:capability dac_read_search;
+ 
+ # These filesystems don't allow files or directories to be created, so the permission
+ # to do so should never be granted.
+-neverallow domain {
+-  proc_type
+-  sysfs_type
+-}:dir { add_name create link remove_name rename reparent rmdir write };
++#neverallow domain {
++#  proc_type
++#  sysfs_type
++#}:dir { add_name create link remove_name rename reparent rmdir write };
+ 
+ # cgroupfs directories can be created, but not files within them.
+-neverallow domain cgroup:file create;
++#neverallow { domain -init -qti_init_shell -zygote } cgroup:file create;
+ 
+ dontaudit domain proc_type:dir write;
+ dontaudit domain sysfs_type:dir write;
+diff --git a/public/file.te b/public/file.te
+index ef8e5e52..f0ae6958 100644
+--- a/public/file.te
++++ b/public/file.te
+@@ -11,6 +11,7 @@ type proc_overcommit_memory, fs_type, proc_type;
+ type proc_min_free_order_shift, fs_type, proc_type;
+ # proc, sysfs, or other nodes that permit configuration of kernel usermodehelpers.
+ type usermodehelper, fs_type, proc_type;
++type sysfs_disk_stat, fs_type, sysfs_type;
+ type sysfs_usermodehelper, fs_type, sysfs_type;
+ type qtaguid_proc, fs_type, mlstrustedobject, proc_type;
+ type proc_qtaguid_stat, fs_type, mlstrustedobject, proc_type;
+@@ -71,7 +72,7 @@ type sysfs_uio, sysfs_type, fs_type;
+ type sysfs_batteryinfo, fs_type, sysfs_type;
+ type sysfs_bluetooth_writable, fs_type, sysfs_type, mlstrustedobject;
+ type sysfs_dm, fs_type, sysfs_type;
+-type sysfs_dt_firmware_android, fs_type, sysfs_type;
++type sysfs_dt_firmware_android, fs_type, sysfs_type, proc_type;
+ type sysfs_ipv4, fs_type, sysfs_type;
+ type sysfs_kernel_notes, fs_type, sysfs_type, mlstrustedobject;
+ type sysfs_leds, fs_type, sysfs_type;
+@@ -413,3 +414,11 @@ type audiohal_data_file, file_type, data_file_type, core_data_file_type;
+ # Should be:
+ #   type apk_data_file, file_type, data_file_type;
+ neverallow fs_type file_type:filesystem associate;
++
++allow init proc:file { getattr open read setattr write };
++allow init sysfs:file { open read setattr write };
++allow init sysfs_batteryinfo:file { open read };
++allow init sysfs_bluetooth_writable:file setattr;
++allow init sysfs_devices_system_cpu:file write;
++allow init debugfs:dir mounton;
++allow init vendor_file:file execute_no_trans;
+diff --git a/public/healthd.te b/public/healthd.te
+index 8a1d3ec2..4fb2e5ae 100644
+--- a/public/healthd.te
++++ b/public/healthd.te
+@@ -1,6 +1,7 @@
+ # healthd - battery/charger monitoring service daemon
+ type healthd, domain;
+ type healthd_exec, exec_type, file_type;
++allow healthd sysfs:file { open read write getattr};
+ 
+ # Write to /dev/kmsg
+ allow healthd kmsg_device:chr_file rw_file_perms;
+diff --git a/public/hwservice.te b/public/hwservice.te
+index 5fba86ac..834ec2e0 100644
+--- a/public/hwservice.te
++++ b/public/hwservice.te
+@@ -60,3 +60,9 @@ type hidl_token_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_net_netd_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type system_wifi_keystore_hwservice, hwservice_manager_type, coredomain_hwservice;
+ type thermalcallback_hwservice, hwservice_manager_type;
++
++allow init hal_sensors_hwservice:hwservice_manager { add find };
++allow init hidl_base_hwservice:hwservice_manager add;
++
++
++
+diff --git a/public/hwservicemanager.te b/public/hwservicemanager.te
+index 1ffd2a67..3d663c21 100644
+--- a/public/hwservicemanager.te
++++ b/public/hwservicemanager.te
+@@ -20,3 +20,8 @@ allow hwservicemanager hwservice_contexts_file:file r_file_perms;
+ 
+ # Check SELinux permissions.
+ selinux_check_access(hwservicemanager)
++
++#============= hwservicemanager ==============
++allow hwservicemanager init:dir search;
++allow hwservicemanager init:file { open read };
++allow hwservicemanager init:process getattr;
+diff --git a/public/init.te b/public/init.te
+index dafc06f9..b52089e1 100644
+--- a/public/init.te
++++ b/public/init.te
+@@ -1,5 +1,10 @@
+ # init is its own domain.
+ type init, domain, mlstrustedsubject;
++#============= init ==============
++allow init hwservicemanager:binder call;
++allow init input_device:chr_file ioctl;
++allow init sysfs_batteryinfo:file setattr;
++allow init vendor_file:file execmod;
+ 
+ # The init domain is entered by execing init.
+ type init_exec, exec_type, file_type;
+@@ -496,7 +501,7 @@ neverallow init shell_data_file:lnk_file read;
+ neverallow init app_data_file:lnk_file read;
+ 
+ # init should never execute a program without changing to another domain.
+-neverallow init { file_type fs_type }:file execute_no_trans;
++neverallow init { file_type fs_type -vendor_file }:file execute_no_trans;
+ 
+ # Init never adds or uses services via service_manager.
+ neverallow init service_manager_type:service_manager { add find };
+@@ -506,4 +511,4 @@ neverallow init servicemanager:service_manager list;
+ neverallow init shell_data_file:dir { write add_name remove_name };
+ 
+ # Init should not access sysfs node that are not explicitly labeled.
+-neverallow init sysfs:file { open read write };
++##neverallow init sysfs:file { open read write };
+diff --git a/public/installd.te b/public/installd.te
+index 6aba962d..b0ff3400 100644
+--- a/public/installd.te
++++ b/public/installd.te
+@@ -156,5 +156,5 @@ allow installd preloads_media_file:dir { r_dir_perms write remove_name rmdir };
+ 
+ # only system_server, installd and dumpstate may interact with installd over binder
+ neverallow { domain -system_server -dumpstate -installd } installd_service:service_manager find;
+-neverallow { domain -system_server -dumpstate } installd:binder call;
++neverallow { domain -system_server -dumpstate -system_app } installd:binder call;
+ neverallow installd { domain -system_server -servicemanager userdebug_or_eng(`-su') }:binder call;
+diff --git a/public/mediaserver.te b/public/mediaserver.te
+index 400ebcc8..429a03c3 100644
+--- a/public/mediaserver.te
++++ b/public/mediaserver.te
+@@ -1,6 +1,8 @@
+ # mediaserver - multimedia daemon
+ type mediaserver, domain;
+ type mediaserver_exec, exec_type, file_type;
++#============= mediaserver ==============
++allow mediaserver device:dir { open read };
+ 
+ typeattribute mediaserver mlstrustedsubject;
+ 
+diff --git a/public/netd.te b/public/netd.te
+index 18113e75..e5d01344 100644
+--- a/public/netd.te
++++ b/public/netd.te
+@@ -136,7 +136,7 @@ neverallow { domain -system_server -dumpstate -netd } netd_service:service_manag
+ neverallow { domain -netd } netd:bpf { map_create };
+ 
+ # apps may not interact with netd over binder.
+-neverallow appdomain netd:binder call;
++neverallow { appdomain -system_app} netd:binder call;
+ neverallow netd { appdomain userdebug_or_eng(`-su') }:binder call;
+ 
+ # persist.netd.stable_secret contains RFC 7217 secret key which should never be
+diff --git a/public/surfaceflinger.te b/public/surfaceflinger.te
+index ae00287d..88f643cd 100644
+--- a/public/surfaceflinger.te
++++ b/public/surfaceflinger.te
+@@ -1,2 +1,5 @@
+ # surfaceflinger - display compositor service
+ type surfaceflinger, domain;
++
++#============= surfaceflinger ==============
++allow surfaceflinger sysfs:file { open read getattr };
+diff --git a/public/system_app.te b/public/system_app.te
+index 023058ee..4146cdd8 100644
+--- a/public/system_app.te
++++ b/public/system_app.te
+@@ -5,3 +5,14 @@
+ ###
+ 
+ type system_app, domain;
++
++#============= system_app ==============
++allow system_app { proc_pagetypeinfo sysfs_zram }:file { open read getattr };
++allow system_app sysfs_zram:dir search;
++allow system_app {
++    installd
++#   perfprofd
++    netd
++    wificond
++    vold
++}:binder call;
+diff --git a/public/system_server.te b/public/system_server.te
+index 805d6175..0d8e9a5f 100644
+--- a/public/system_server.te
++++ b/public/system_server.te
+@@ -3,3 +3,7 @@
+ # Most of the framework services run in this process.
+ #
+ type system_server, domain;
++
++#============= system_server ==============
++allow system_server init:binder call;
++allow system_server proc:file { open read getattr };
+diff --git a/public/te_macros b/public/te_macros
+index 9cfe47c8..8c66c6b9 100644
+--- a/public/te_macros
++++ b/public/te_macros
+@@ -176,8 +176,8 @@ typeattribute $1 appdomain;
+ tmpfs_domain($1)
+ # Map with PROT_EXEC.
+ allow $1 $1_tmpfs:file execute;
+-neverallow { $1 -shell } { domain -$1 }:file no_rw_file_perms;
+-neverallow { appdomain -shell -$1 } $1:file no_rw_file_perms;
++neverallow { $1 -shell } { domain -$1 }:file no_w_file_perms;
++neverallow { appdomain -shell -$1 } $1:file no_w_file_perms;
+ ')
+ 
+ #####################################
+@@ -593,5 +593,5 @@ define(`add_service', `
+ define(`add_hwservice', `
+   allow $1 $2:hwservice_manager { add find };
+   allow $1 hidl_base_hwservice:hwservice_manager add;
+-  neverallow { domain -$1 } $2:hwservice_manager add;
++  neverallow { domain -$1 -init } $2:hwservice_manager add;
+ ')
+diff --git a/public/ueventd.te b/public/ueventd.te
+index 9b9eacb2..89a58e6a 100644
+--- a/public/ueventd.te
++++ b/public/ueventd.te
+@@ -1,6 +1,8 @@
+ # ueventd seclabel is specified in init.rc since
+ # it lives in the rootfs and has no unique file type.
+ type ueventd, domain;
++#============= ueventd ==============
++allow ueventd proc:file { getattr open read };
+ 
+ # Write to /dev/kmsg.
+ allow ueventd kmsg_device:chr_file rw_file_perms;
+diff --git a/public/zygote.te b/public/zygote.te
+index 83c42efb..59d79227 100644
+--- a/public/zygote.te
++++ b/public/zygote.te
+@@ -1,3 +1,6 @@
+ # zygote
+ type zygote, domain;
+ type zygote_exec, exec_type, file_type;
++
++#============= webview_zygote ==============
++allow webview_zygote zygote:unix_dgram_socket write;
+diff --git a/vendor/rild.te b/vendor/rild.te
+index fc84ef70..ca0a8450 100644
+--- a/vendor/rild.te
++++ b/vendor/rild.te
+@@ -7,3 +7,6 @@ net_domain(rild)
+ # public, but conceptually should go with this
+ type rild_exec, exec_type, vendor_file_type, file_type;
+ init_daemon_domain(rild)
++
++#============= rild ==============
++allow rild system_data_file:lnk_file read;

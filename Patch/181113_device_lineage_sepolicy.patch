@@ -1,0 +1,10 @@
+diff --git a/common/private/userinit.te b/common/private/userinit.te
+index 48a4891..ab2a18b 100644
+--- a/common/private/userinit.te
++++ b/common/private/userinit.te
+@@ -1,4 +1,4 @@
+ type userinit_exec, exec_type, file_type;
+-type userinit_data_exec, file_type, data_file_type;
++type userinit_data_exec, file_type, data_file_type, core_data_file_type;
+ 
+ set_prop(userinit_exec, userinit_prop)

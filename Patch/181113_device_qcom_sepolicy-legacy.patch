@@ -1,0 +1,484 @@
+diff --git a/common/domain.te b/common/domain.te
+index 08fc7cb..037aff0 100644
+--- a/common/domain.te
++++ b/common/domain.te
+@@ -25,3 +25,103 @@ allow domain sysfs_kgsl_gpuclk:file r_file_perms;
+ allow domain  sysfs_kgsl_gpuclk:lnk_file r_file_perms;
+ allow domain qti_debugfs:dir search;
+ allow domain kgsl_debugfs:dir search;
++
++########################################################################
++# cgroupfs directories can be created, but not files within them.
++neverallow { domain -init -qti_init_shell -zygote } cgroup:file create;
++
++# These filesystems don't allow files or directories to be created, so the permission
++# to do so should never be granted.
++neverallow domain { proc_type sysfs_type }:dir { link rename reparent };
++neverallow {
++    domain
++    -init
++    -vendor_init
++} {
++    proc_type
++    sysfs_type
++    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
++} :dir { create rmdir };
++
++neverallow {
++    domain
++    -init
++    -vendor_init
++    -usb_uicc_daemon
++} {
++    proc_type
++    sysfs_type
++    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
++    -sysfs_usb_uicc
++} :dir { add_name remove_name };
++
++neverallow {
++    domain
++    -init
++    -vendor_init
++    -usb_uicc_daemon
++    -qti_init_shell
++} {
++    proc_type
++    sysfs_type
++    -hbtp_kernel_sysfs -sysfs_hsic_host_rdy -sysfs_ssr_toggle
++    -sysfs_usb_uicc
++    -sysfs_devices_system_cpu
++} :dir { write };
++
++########################################################################
++neverallow {
++   domain
++   -traced_probes
++##
++   -update_engine
++   -thermal-engine
++   -hal_iop_default
++   -sensors
++   -qti_init_shell
++   -qlogd
++   -rfs_access
++} self:capability dac_read_search;
++########################################################################
++# Minimize dac_override and dac_read_search.
++# Instead of granting them it is usually better to add the domain to
++# a Unix group or change the permissions of a file.
++neverallow {
++  domain
++  -dnsmasq
++  -dumpstate
++  -init
++  -installd
++  -install_recovery
++  -lmkd
++  -netd
++  -perfprofd
++  -postinstall_dexopt
++  -recovery
++  -sdcardd
++  -tee
++  -ueventd
++  -uncrypt
++  -vendor_init
++  -vold
++  -vold_prepare_subdirs
++  -zygote
++##
++   -mmi
++   -hal_perf_default
++   -mpdecision
++   -port-bridge
++   -update_engine
++   -msm_irqbalanced
++   -thermal-engine
++   -hal_iop_default
++   -sensors
++   -qmuxd
++   -qti_init_shell
++   -qcomsysd
++   -qlogd
++   -rfs_access
++} self:capability dac_override;
++########################################################################
++
++
+diff --git a/common/file.te b/common/file.te
+index 91cd5e9..8fef5c8 100644
+--- a/common/file.te
++++ b/common/file.te
+@@ -1,5 +1,6 @@
+ # Default type for anything under /firmware.
+-type firmware_file, fs_type, contextmount_type;
++type firmware_file, fs_type, contextmount_type, vendor_file_type;
++typeattribute firmware_file binder_in_vendor_violators;
+ 
+ #Define the qmux socket type
+ type qmuxd_socket, file_type;
+@@ -12,7 +13,7 @@ type pps_socket, file_type;
+ 
+ # Define cnd socket and data file type
+ type cnd_socket, file_type, mlstrustedobject;
+-type cnd_data_file, file_type, data_file_type;
++type cnd_data_file, file_type, data_file_type, core_data_file_type;
+ type chre_socket, file_type;
+ 
+ # Define dpmd data file type
+@@ -28,7 +29,7 @@ type sysfs_smd_open_timeout, sysfs_type, fs_type;
+ 
+ #Define the files written during the operation of netmgrd and qmuxd
+ type netmgrd_data_file, file_type, data_file_type;
+-type data_test_data_file, file_type, data_file_type;
++type data_test_data_file, file_type, data_file_type, core_data_file_type;
+ type sysrq_trigger_proc, fs_type, mlstrustedobject;
+ # Persist file types
+ type persist_file, file_type;
+@@ -36,24 +37,25 @@ type persist_bluetooth_file, file_type;
+ type persist_data_file, file_type;
+ type persist_drm_file, file_type;
+ type data_qtee_file, file_type, data_file_type;
+-type data_qsee_file, file_type, data_file_type;
++type data_qsee_file, file_type, data_file_type, core_data_file_type;
+ type persist_misc_file, file_type;
+ type persist_bms_file, file_type;
+ type persist_secnvm_file, file_type;
+ 
+-type diag_data_file, file_type, data_file_type;
++type diag_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #file type for restricting proc read by audiod
+-type proc_audiod, fs_type;
++type proc_audiod, fs_type, proc_type;
+ 
+ #file type for irqbalance socket
+ type msm_irqbalance_socket, file_type;
+ 
+ # Sensor file types
+ type sensors_socket, file_type;
+-type sensors_data_file, file_type, data_file_type;
++type sensors_data_file, file_type, data_file_type, core_data_file_type;
+ type sensors_persist_file, file_type;
+ type sysfs_sensors, sysfs_type, fs_type;
++allow init sysfs_sensors:lnk_file read;
+ 
+ #type for thermal-engine
+ type thermal_socket, file_type;
+@@ -61,9 +63,9 @@ type thermal_socket, file_type;
+ type sysfs_msmuart_file, sysfs_type, fs_type;
+ 
+ # Storage RFS file types
+-type rfs_file, file_type, data_file_type;
++type rfs_file, file_type, data_file_type, core_data_file_type;
+ type rfs_system_file, file_type;
+-type rfs_shared_hlos_file, file_type, data_file_type;
++type rfs_shared_hlos_file, file_type, data_file_type, core_data_file_type;
+ 
+ #mm-pp-daemon file type for sysfs access
+ #type sysfs_leds, fs_type, sysfs_type;
+@@ -73,6 +75,7 @@ type data_ad_calib_cfg, file_type, data_file_type;
+ 
+ #SurfaceFlinger file type for sysfs access
+ type sysfs_graphics, sysfs_type, fs_type;
++allow init sysfs_graphics:file setattr;
+ 
+ # USB/battery power supply type for hvdcp/quickcharge
+ type sysfs_usb_supply, sysfs_type, fs_type;
+@@ -94,8 +97,8 @@ type sysfs_spmi_dev, sysfs_type, fs_type;
+ type sysfs_mpdecision, fs_type, sysfs_type;
+ type sysfs_rqstats, fs_type, sysfs_type;
+ type sysfs_cpu_online, fs_type, sysfs_type;
+-type mpctl_socket, file_type, data_file_type, mlstrustedobject;
+-type mpctl_data_file, file_type, data_file_type;
++type mpctl_socket, file_type, data_file_type, mlstrustedobject, core_data_file_type;
++type mpctl_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #Define the files used by lm
+ type lm_data_file, file_type, data_file_type;
+@@ -115,13 +118,13 @@ type gamed_socket, file_type;
+ 
+ #define the files writter during the operatio of iop
+ type iop_socket, file_type;
+-type iop_data_file, file_type, data_file_type;
++type iop_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ # SPSS Apps images location
+-type spss_data_file, file_type, data_file_type;
++type spss_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #mm-qcamera-daemon socket
+-type camera_socket, file_type, data_file_type;
++type camera_socket, file_type, data_file_type, core_data_file_type;
+ 
+ #Socket node needed by ims_data daemon
+ type ims_socket, file_type;
+@@ -136,8 +139,8 @@ type ssgqmig_socket, file_type, mlstrustedobject;
+ type ssgtzd_socket, file_type, mlstrustedobject;
+ 
+ #location file types
+-type location_data_file, file_type, data_file_type;
+-type location_socket, file_type, data_file_type;
++type location_data_file, file_type, data_file_type, core_data_file_type;
++type location_socket, file_type, data_file_type, core_data_file_type;
+ type location_app_data_file, file_type, data_file_type;
+ 
+ #File types required by mdm-helper
+@@ -154,7 +157,7 @@ type sysfs_socinfo, fs_type, sysfs_type;
+ type sysfs_usb_uicc, sysfs_type, fs_type;
+ 
+ type qlogd_socket, file_type, mlstrustedobject;
+-type qlogd_data_file, file_type, data_file_type;
++type qlogd_data_file, file_type, data_file_type, core_data_file_type;
+ #Defines the files (configs, dumps, etc) used by display processes
+ type display_vendor_data_file, file_type, data_file_type;
+ 
+@@ -163,33 +166,33 @@ type persist_display_file, file_type;
+ 
+ # IPA file types
+ type ipacm_socket, file_type;
+-type ipacm_data_file, file_type, data_file_type;
++type ipacm_data_file, file_type, data_file_type, core_data_file_type;
+ type ipa_vendor_data_file, file_type, data_file_type;
+ 
+ # Port-bridge file types
+-type port_bridge_data_file, file_type, data_file_type;
++type port_bridge_data_file, file_type, data_file_type, core_data_file_type;
+ 
+-type fm_data_file, file_type, data_file_type;
++type fm_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #Define the files written during the operation of mmi
+-type mmi_data_file, file_type, data_file_type;
++type mmi_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #bluetooth firmware file types
+ type bt_firmware_file, fs_type, contextmount_type;
+ 
+ #needed by vold
+-type  proc_dirty_ratio, fs_type;
++type  proc_dirty_ratio, fs_type, proc_type;
+ 
+ #File types by mmi
+ type mmi_socket, file_type;
+ 
+ # hbtp config file
+-type hbtp_cfg_file, file_type;
++type hbtp_cfg_file, file_type, vendor_file_type;
+ type hbtp_log_file, file_type, data_file_type;
+ type hbtp_kernel_sysfs, file_type, sysfs_type;
+ 
+ #Define the files written during the operation of usf
+-type usf_data_file, file_type, data_file_type;
++type usf_data_file, file_type, data_file_type, core_data_file_type;
+ type persist_usf_file, file_type;
+ 
+ #qfp-daemon
+@@ -197,7 +200,7 @@ type qfp-daemon_data_file, file_type, data_file_type;
+ type persist_qti_fp_file, file_type;
+ 
+ # dts notifier files
+-type dts_data_file, file_type, data_file_type;
++type dts_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #qsee_svc_app file types
+ type qsee_svc_app_data_file, file_type, data_file_type;
+@@ -219,22 +222,22 @@ type qti_logkit_pub_socket, file_type, mlstrustedobject, data_file_type;
+ type adsprpcd_file, file_type, mlstrustedobject;
+ 
+ # audio pp notifier files
+-type audio_pp_data_file, file_type, data_file_type;
++type audio_pp_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ #mdtp_svc_app file types
+ type mdtp_svc_app_data_file, file_type, data_file_type;
+ 
+ # subsystem_ramdump files
+-type ssr_ramdump_data_file, file_type, data_file_type;
++type ssr_ramdump_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ # Regionalization files
+-type regionalization_file, file_type;
++type regionalization_file, file_type, vendor_file_type, vendor_file_type;
+ 
+ # /data/system/swap/swapfile - swapfile
+-type swap_data_file, file_type, data_file_type;
++type swap_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ # dynamic nv files
+-type dynamic_nv_data_file, file_type, data_file_type;
++type dynamic_nv_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ # Wifi Data file
+ type wifi_vendor_data_file, file_type, data_file_type;
+@@ -248,6 +251,9 @@ type persist_alarm_file, file_type;
+ 
+ type persist_time_file, file_type;
+ 
++# nfc file type for data vendor access
++type nfc_vendor_data_file, file_type, data_file_type;
++
+ # kgsl file type for sysfs access
+ type sysfs_kgsl, sysfs_type, fs_type;
+ type sysfs_kgsl_proc, sysfs_type, fs_type;
+@@ -314,7 +320,7 @@ type sysfs_msm_stats, fs_type, sysfs_type;
+ type sysfs_msm_power, fs_type, sysfs_type;
+ 
+ # Data type for QVOP
+-type qvop-daemon_data_file, file_type, data_file_type;
++type qvop-daemon_data_file, file_type, data_file_type, core_data_file_type;
+ 
+ type sysfs_fm, sysfs_type, fs_type;
+ # /data/vendor/tombstones/ file
+@@ -334,3 +340,5 @@ type kgsl_debugfs, debugfs_type, fs_type;
+ 
+ #sysfs emmc dload type
+ type sysfs_emmc_dload, sysfs_type, fs_type;
++
++allow init sysfs_kgsl:file setattr;
+diff --git a/common/file_contexts b/common/file_contexts
+index 121e2e1..5585caa 100644
+--- a/common/file_contexts
++++ b/common/file_contexts
+@@ -510,6 +510,7 @@
+ # data files
+ #
+ /data/connectivity(/.*)?                                            u:object_r:cnd_data_file:s0
++/data/vendor/nfc(/.*)?                                              u:object_r:nfc_vendor_data_file:s0
+ /data/vendor/connectivity(/.*)?                                     u:object_r:cnd_data_file:s0
+ /data/data_test(/.*)?                                               u:object_r:data_test_data_file:s0
+ /data/diag_log(/.*)?                                                u:object_r:diag_data_file:s0
+diff --git a/common/hal_nfc.te b/common/hal_nfc.te
+index 801a19a..e4dcada 100644
+--- a/common/hal_nfc.te
++++ b/common/hal_nfc.te
+@@ -31,3 +31,4 @@ set_prop(hal_nfc, nfc_nq_prop)
+ #Allow access to firmware
+ allow hal_nfc firmware_file:dir r_dir_perms;
+ allow hal_nfc firmware_file:file r_file_perms;
++allow hal_nfc nfc_vendor_data_file:file rw_file_perms;
+diff --git a/common/hal_sensors.te b/common/hal_sensors.te
+index d8792e5..e60ed4d 100644
+--- a/common/hal_sensors.te
++++ b/common/hal_sensors.te
+@@ -51,3 +51,9 @@ allow hal_sensors sysfs_sensors:file rw_file_perms;
+ allow hal_sensors sysfs_sensors:lnk_file read;
+ allow hal_sensors input_device:dir r_dir_perms;
+ allow hal_sensors input_device:chr_file r_file_perms;
++
++# Access sensor nodes (/dev/msm_dsps, /dev/sensors)
++allow hal_sensors_default sensors_device:chr_file rw_file_perms;
++# Access /dev/socket/sensor_ctl_socket
++allow hal_sensors_default sensors_socket:sock_file rw_file_perms;
++allow hal_sensors_default sensors:unix_stream_socket connectto;
+diff --git a/common/netmgrd.te b/common/netmgrd.te
+index 1aa1ffd..714f541 100644
+--- a/common/netmgrd.te
++++ b/common/netmgrd.te
+@@ -49,7 +49,8 @@ unix_socket_connect(netmgrd, cnd, cnd);
+ qmux_socket(netmgrd);
+ 
+ #Allow writing of ipv6 network properties
+-allow netmgrd { proc_net sysfs }:file rw_file_perms;
++allow netmgrd { proc_net sysfs_net }:file rw_file_perms;
++allow netmgrd sysfs_net:dir r_dir_perms;
+ 
+ #Allow address configuration
+ #Allow setting of DNS and GW Android properties
+diff --git a/common/property_contexts b/common/property_contexts
+index 4b89c63..073395e 100644
+--- a/common/property_contexts
++++ b/common/property_contexts
+@@ -106,7 +106,7 @@ sys.boot_mode              u:object_r:boot_mode_prop:s0
+ # GPU
+ ro.gpu.available_frequencies u:object_r:freq_prop:s0
+ # NFC
+-sys.nfc.nq.                u:object_r:nfc_nq_prop:s0
++vendor.qti.nfc.            u:object_r:nfc_nq_prop:s0
+ ctl.ppd                    u:object_r:ppd_prop:s0
+ qemu.gles                  u:object_r:qemu_gles_prop:s0
+ # LKCore start
+diff --git a/common/rfs_access.te b/common/rfs_access.te
+index 46b224d..8592a94 100644
+--- a/common/rfs_access.te
++++ b/common/rfs_access.te
+@@ -70,5 +70,11 @@ allow rfs_access self:capability { dac_read_search chown dac_override };
+ allow rfs_access kmsg_device:chr_file w_file_perms;
+ 
+ #Prevent other domains from accessing RFS data files.
+-neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir create_dir_perms;
+-neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file create_file_perms;
++neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:dir { reparent rename lock lock };
++neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:dir { open search };
++neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:dir { ioctl read write create getattr setattr add_name remove_name search rmdir open };
++
++neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell } rfs_file:file { rename ioctl lock map append lock map };
++neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file open;
++neverallow { domain -rfs_access -kernel -recovery -init userdebug_or_eng(`-su') -qti_init_shell -vendor_init } rfs_file:file { read write create getattr setattr unlink open };
++
+diff --git a/common/sensors.te b/common/sensors.te
+index 7cce138..19a61e4 100644
+--- a/common/sensors.te
++++ b/common/sensors.te
+@@ -23,6 +23,7 @@ dontaudit sensors self:capability { fsetid net_raw };
+ allow sensors sensors_socket:sock_file create_file_perms;
+ type_transition sensors socket_device:sock_file sensors_socket "sensor_ctl_socket";
+ allow sensors socket_device:dir rw_dir_perms;
++allow sensors socket_device:file rw_file_perms;
+ 
+ # Create directories and files under /data/misc/sensors
+ # and /data/system/sensors. Allow generic r/w file access.
+diff --git a/common/wcnss_service.te b/common/wcnss_service.te
+index 240af67..2ba9456 100644
+--- a/common/wcnss_service.te
++++ b/common/wcnss_service.te
+@@ -40,6 +40,7 @@ allow wcnss_service firmware_file:file r_file_perms;
+ allow wcnss_service sysfs:file rw_file_perms;
+ allow wcnss_service sysfs_data:file r_file_perms;
+ allow wcnss_service proc:file r_file_perms;
++r_dir_file(wcnss_service, sysfs_net);
+ 
+ # allow access to network performance tuner
+ unix_socket_connect(wcnss_service, wigignpt, wigignpt)
+diff --git a/legacy-common/bluetooth_loader.te b/legacy-common/bluetooth_loader.te
+index b969bdc..a86c39b 100644
+--- a/legacy-common/bluetooth_loader.te
++++ b/legacy-common/bluetooth_loader.te
+@@ -1,5 +1,5 @@
+ type bluetooth_loader, domain;
+-type bluetooth_loader_exec, exec_type, file_type;
++type bluetooth_loader_exec, exec_type, file_type, vendor_file_type;
+ 
+ # Started by init
+ init_daemon_domain(bluetooth_loader)
+diff --git a/legacy-common/file_contexts b/legacy-common/file_contexts
+index b6d7679..484808f 100644
+--- a/legacy-common/file_contexts
++++ b/legacy-common/file_contexts
+@@ -23,7 +23,10 @@
+ /data/misc/iop(/.*)?                                                          u:object_r:iop_data_file:s0
+ 
+ # Battery
++/sys/devices(/platform)?/soc\.0/qpnp-fg-[a-z0-9]+/power_supply/bms(/.*)?      u:object_r:sysfs_battery_supply:s0
+ /sys/devices(/platform)?/soc\.0/qpnp-linear-charger-[a-z0-9]+/power_supply/battery(/.*)?  u:object_r:sysfs_battery_supply:s0
++/sys/devices(/platform)?/soc\.0/qpnp-smbcharger-[a-z0-9]+/power_supply/battery(/.*)?  u:object_r:sysfs_battery_supply:s0
++/sys/devices(/platform)?/soc\.0/qpnp-smbcharger-[a-z0-9]+/power_supply/dc(/.*)?  u:object_r:sysfs_battery_supply:s0
+ /sys/devices(/platform)?/soc\.0/qpnp-vm-bms-[a-z0-9]+/power_supply/bms(/.*)?  u:object_r:sysfs_battery_supply:s0
+ 
+ # Graphics
+diff --git a/legacy-common/genfs_contexts b/legacy-common/genfs_contexts
+index f94e9eb..4781836 100644
+--- a/legacy-common/genfs_contexts
++++ b/legacy-common/genfs_contexts
+@@ -1 +1,3 @@
+ genfscon debugfs /rmt_storage u:object_r:debugfs_rmt:s0
++
++genfscon proc /device-tree/firmware/android u:object_r:sysfs_dt_firmware_android:s0
+diff --git a/legacy-common/hal_gnss_default.te b/legacy-common/hal_gnss_default.te
+index bac5a5b..c10007b 100644
+--- a/legacy-common/hal_gnss_default.te
++++ b/legacy-common/hal_gnss_default.te
+@@ -1 +1,2 @@
+ allow hal_gnss_default location_data_file:dir create;
++allow hal_gnss_default location_data_file:fifo_file create_file_perms;

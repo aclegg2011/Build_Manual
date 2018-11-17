@@ -73,26 +73,15 @@ index c6b42e1..4f456bb 100644
      } else {
          gsm_properties("gsm");
      }
-diff --git a/lineage.mk b/lineage.mk
-index 6ab1b52..4e56773 100644
---- a/lineage.mk
-+++ b/lineage.mk
-@@ -20,3 +20,6 @@ $(call inherit-product, device/samsung/hlte/full_hlte.mk)
+diff --git a/lineage_hlte.mk b/lineage_hlte.mk
+index 6ab1b52..2a5483b 100644
+--- a/lineage_hlte.mk
++++ b/lineage_hlte.mk
+@@ -20,3 +20,7 @@ $(call inherit-product, device/samsung/hlte/full_hlte.mk)
  
  PRODUCT_DEVICE := hlte
  PRODUCT_NAME := lineage_hlte
 +
 +PRODUCT_PACKAGES += \
++    com.android.phone.common \
 +    OmniSwitch
-diff --git a/overlay/frameworks/base/core/res/res/values/config.xml b/overlay/frameworks/base/core/res/res/values/config.xml
-index 7f25bfe..b9eee7d 100644
---- a/overlay/frameworks/base/core/res/res/values/config.xml
-+++ b/overlay/frameworks/base/core/res/res/values/config.xml
-@@ -46,4 +46,7 @@
-         <item>com.google.android.setupwizard/com.google.android.setupwizard.time.DateTimeCheck</item>
-         <item>com.google.android.setupwizard/com.google.android.setupwizard.carrier.ActivationActivity</item>
-     </string-array>
-+
-+    <!-- Whether camera shutter sound is forced or not  (country specific). -->
-+    <bool name="config_camera_sound_forced">false</bool>
- </resources>
