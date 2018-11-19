@@ -84,15 +84,3 @@ index 6ab1b52..4e56773 100644
 +
 +PRODUCT_PACKAGES += \
 +    OmniSwitch
-diff --git a/overlay/frameworks/base/core/res/res/values/config.xml b/overlay/frameworks/base/core/res/res/values/config.xml
-index 7f25bfe..b9eee7d 100644
---- a/overlay/frameworks/base/core/res/res/values/config.xml
-+++ b/overlay/frameworks/base/core/res/res/values/config.xml
-@@ -46,4 +46,7 @@
-         <item>com.google.android.setupwizard/com.google.android.setupwizard.time.DateTimeCheck</item>
-         <item>com.google.android.setupwizard/com.google.android.setupwizard.carrier.ActivationActivity</item>
-     </string-array>
-+
-+    <!-- Whether camera shutter sound is forced or not  (country specific). -->
-+    <bool name="config_camera_sound_forced">false</bool>
- </resources>
