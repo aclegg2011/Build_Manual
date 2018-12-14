@@ -15,3 +15,11 @@ index 82977dd..c1d82a1 100644
  BOARD_KERNEL_IMAGE_NAME := zImage
  BOARD_KERNEL_PAGESIZE := 2048
  BOARD_KERNEL_SEPARATED_DT := true
+diff --git a/sepolicy/common/file.te b/sepolicy/common/file.te
+index 4896d54..9e365ab 100644
+--- a/sepolicy/common/file.te
++++ b/sepolicy/common/file.te
+@@ -1,2 +1,2 @@
+ type sensors_efs_file, file_type;
+-type vendor_sensor_lib_file, vendor_file_type, file_type;
++#type vendor_sensor_lib_file, vendor_file_type, file_type;

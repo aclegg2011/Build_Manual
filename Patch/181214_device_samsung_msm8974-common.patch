@@ -1,0 +1,10 @@
+diff --git a/sepolicy/common/file.te b/sepolicy/common/file.te
+index b37830a..252eaf0 100644
+--- a/sepolicy/common/file.te
++++ b/sepolicy/common/file.te
+@@ -1,4 +1,4 @@
+-type proc_bt_sleep, fs_type;
++type proc_bt_sleep, fs_type ,proc_type;
+ 
+ type sysfs_camera, fs_type, sysfs_type;
+ type sysfs_hal_pwr, fs_type, sysfs_type;

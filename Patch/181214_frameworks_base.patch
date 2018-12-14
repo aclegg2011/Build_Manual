@@ -1,3 +1,19 @@
+diff --git a/core/java/android/util/FeatureFlagUtils.java b/core/java/android/util/FeatureFlagUtils.java
+index c8614990732..43bbcb9e51c 100644
+--- a/core/java/android/util/FeatureFlagUtils.java
++++ b/core/java/android/util/FeatureFlagUtils.java
+@@ -38,9 +38,9 @@ public class FeatureFlagUtils {
+     static {
+         DEFAULT_FLAGS = new HashMap<>();
+         DEFAULT_FLAGS.put("settings_battery_display_app_list", "false");
+-        DEFAULT_FLAGS.put("settings_zone_picker_v2", "true");
++        DEFAULT_FLAGS.put("settings_zone_picker_v2", "false");
+         DEFAULT_FLAGS.put("settings_about_phone_v2", "true");
+-        DEFAULT_FLAGS.put("settings_bluetooth_while_driving", "false");
++        DEFAULT_FLAGS.put("settings_bluetooth_while_driving", "true");
+         DEFAULT_FLAGS.put("settings_data_usage_v2", "true");
+         DEFAULT_FLAGS.put("settings_audio_switcher", "true");
+         DEFAULT_FLAGS.put("settings_systemui_theme", "true");
 diff --git a/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java b/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java
 index 1ae59cbea45..53cfa281c58 100644
 --- a/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java

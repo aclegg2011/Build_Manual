@@ -336,18 +336,6 @@ index 8ad872f6..9b5868fc 100644
  
  init_daemon_domain(storaged)
  
-diff --git a/prebuilts/api/28.0/private/surfaceflinger.te b/prebuilts/api/28.0/private/surfaceflinger.te
-index e64b8de2..e2f1a072 100644
---- a/prebuilts/api/28.0/private/surfaceflinger.te
-+++ b/prebuilts/api/28.0/private/surfaceflinger.te
-@@ -14,6 +14,7 @@ read_runtime_log_tags(surfaceflinger)
- hal_client_domain(surfaceflinger, hal_graphics_allocator)
- hal_client_domain(surfaceflinger, hal_graphics_composer)
- hal_client_domain(surfaceflinger, hal_configstore)
-+hal_client_domain(surfaceflinger, hal_power)
- allow surfaceflinger hidl_token_hwservice:hwservice_manager find;
- 
- # Perform Binder IPC.
 diff --git a/prebuilts/api/28.0/public/file.te b/prebuilts/api/28.0/public/file.te
 index a4051b2d..9c642360 100644
 --- a/prebuilts/api/28.0/public/file.te
@@ -514,42 +502,6 @@ index a6276b38..1ea69b87 100644
    -sysfs_usb # TODO: check with audio team if needed for isolated_app (b/28417852)
 -}:file no_rw_file_perms;
 +}:file no_w_file_perms;
-diff --git a/private/storaged.te b/private/storaged.te
-index 8ad872f6..3f141af6 100644
---- a/private/storaged.te
-+++ b/private/storaged.te
-@@ -1,12 +1,19 @@
- # storaged daemon
- type storaged, domain, coredomain, mlstrustedsubject;
- type storaged_exec, exec_type, file_type;
-+#============= storaged ==============
-+allow storaged sysfs:file { open read getattr };
-+allow system_app storaged:binder call;
- 
- init_daemon_domain(storaged)
- 
- # Read access to pseudo filesystems
- r_dir_file(storaged, proc_net)
- r_dir_file(storaged, domain)
-+r_dir_file(storaged, sysfs_disk_stat)
-+# Allow read access to /sys/block/mmcblk0/stat or /sys/block/sda/stat.
-+# Implementations typically have symlinks to vendor specific files.
-+# Vendors should mark sysfs_disk_stat on all files read by storaged.
- 
- # Read /proc/uid_io/stats
- allow storaged proc_uid_io_stats:file r_file_perms;
-diff --git a/private/surfaceflinger.te b/private/surfaceflinger.te
-index e64b8de2..e2f1a072 100644
---- a/private/surfaceflinger.te
-+++ b/private/surfaceflinger.te
-@@ -14,6 +14,7 @@ read_runtime_log_tags(surfaceflinger)
- hal_client_domain(surfaceflinger, hal_graphics_allocator)
- hal_client_domain(surfaceflinger, hal_graphics_composer)
- hal_client_domain(surfaceflinger, hal_configstore)
-+hal_client_domain(surfaceflinger, hal_power)
- allow surfaceflinger hidl_token_hwservice:hwservice_manager find;
- 
- # Perform Binder IPC.
 diff --git a/private/webview_zygote.te b/private/webview_zygote.te
 index 55b268a3..9b5f7060 100644
 --- a/private/webview_zygote.te
@@ -564,7 +516,7 @@ index 55b268a3..9b5f7060 100644
  allow webview_zygote seapp_contexts_file:file r_file_perms;
  # Check validity of SELinux context before use.
 diff --git a/public/domain.te b/public/domain.te
-index 5131c2b0..ecf25e5b 100644
+index a4182334..db9207bf 100644
 --- a/public/domain.te
 +++ b/public/domain.te
 @@ -323,7 +323,20 @@ neverallow {
@@ -603,7 +555,7 @@ index 5131c2b0..ecf25e5b 100644
      -bootanim # for oemfs
      -recovery # for /tmp/update_binary in tmpfs
 -} { fs_type -rootfs }:file execute;
-+} { fs_type -rootfs -binder_in_vendor_violators }:file execute;
++} { fs_type -rootfs -binder_in_vendor_violators -firmware_file }:file execute;
  
  # Files from cache should never be executed
  neverallow domain { cache_file cache_backup_file cache_private_backup_file cache_recovery_file }:file execute;
@@ -648,7 +600,23 @@ index 5131c2b0..ecf25e5b 100644
  
  # Restrict context mounts to specific types marked with
  # the contextmount_type attribute.
-@@ -1174,7 +1192,18 @@ neverallow {
+@@ -1130,6 +1148,7 @@ ifelse(target_needs_platform_text_relocations, `true',
+     -apk_data_file
+     -app_data_file
+     -asec_public_file
++    -vendor_sensor_lib_file
+   }:file execmod;'
+ ,
+   `neverallow * {
+@@ -1137,6 +1156,7 @@ ifelse(target_needs_platform_text_relocations, `true',
+     -apk_data_file
+     -app_data_file
+     -asec_public_file
++    -vendor_sensor_lib_file
+   }:file execmod;'
+ )
+ 
+@@ -1177,7 +1197,18 @@ neverallow {
    -installd # for relabelfrom and unlink, check for this in explicit neverallow
    -vold_prepare_subdirs # For unlink
    with_asan(`-asan_extract')
@@ -668,7 +636,7 @@ index 5131c2b0..ecf25e5b 100644
  # do not grant anything greater than r_file_perms and relabelfrom unlink
  # to installd
  neverallow installd system_data_file:file ~{ r_file_perms relabelfrom unlink };
-@@ -1358,28 +1387,28 @@ full_treble_only(`
+@@ -1361,28 +1392,28 @@ full_treble_only(`
  # Minimize dac_override and dac_read_search.
  # Instead of granting them it is usually better to add the domain to
  # a Unix group or change the permissions of a file.
@@ -719,7 +687,7 @@ index 5131c2b0..ecf25e5b 100644
  
  # If an already existing file is opened with O_CREAT, the kernel might generate
  # a false report of a create denial. Silence these denials and make sure that
-@@ -1387,13 +1416,13 @@ neverallow { domain -traced_probes } self:capability dac_read_search;
+@@ -1390,13 +1421,13 @@ neverallow { domain -traced_probes } self:capability dac_read_search;
  
  # These filesystems don't allow files or directories to be created, so the permission
  # to do so should never be granted.
@@ -739,18 +707,16 @@ index 5131c2b0..ecf25e5b 100644
  dontaudit domain proc_type:dir write;
  dontaudit domain sysfs_type:dir write;
 diff --git a/public/file.te b/public/file.te
-index ef8e5e52..f0ae6958 100644
+index 3bb1c1e1..376fd023 100644
 --- a/public/file.te
 +++ b/public/file.te
-@@ -11,6 +11,7 @@ type proc_overcommit_memory, fs_type, proc_type;
- type proc_min_free_order_shift, fs_type, proc_type;
- # proc, sysfs, or other nodes that permit configuration of kernel usermodehelpers.
- type usermodehelper, fs_type, proc_type;
-+type sysfs_disk_stat, fs_type, sysfs_type;
- type sysfs_usermodehelper, fs_type, sysfs_type;
- type qtaguid_proc, fs_type, mlstrustedobject, proc_type;
- type proc_qtaguid_stat, fs_type, mlstrustedobject, proc_type;
-@@ -71,7 +72,7 @@ type sysfs_uio, sysfs_type, fs_type;
+@@ -1,3 +1,5 @@
++type vendor_sensor_lib_file, vendor_file_type, file_type;
++type firmware_file, fs_type, contextmount_type, vendor_file_type;
+ # Filesystem types
+ type labeledfs, fs_type;
+ type pipefs, fs_type;
+@@ -73,7 +75,7 @@ type sysfs_uio, sysfs_type, fs_type;
  type sysfs_batteryinfo, fs_type, sysfs_type;
  type sysfs_bluetooth_writable, fs_type, sysfs_type, mlstrustedobject;
  type sysfs_dm, fs_type, sysfs_type;
@@ -759,7 +725,7 @@ index ef8e5e52..f0ae6958 100644
  type sysfs_ipv4, fs_type, sysfs_type;
  type sysfs_kernel_notes, fs_type, sysfs_type, mlstrustedobject;
  type sysfs_leds, fs_type, sysfs_type;
-@@ -413,3 +414,11 @@ type audiohal_data_file, file_type, data_file_type, core_data_file_type;
+@@ -415,3 +417,11 @@ type audiohal_data_file, file_type, data_file_type, core_data_file_type;
  # Should be:
  #   type apk_data_file, file_type, data_file_type;
  neverallow fs_type file_type:filesystem associate;
@@ -811,7 +777,7 @@ index 1ffd2a67..3d663c21 100644
 +allow hwservicemanager init:file { open read };
 +allow hwservicemanager init:process getattr;
 diff --git a/public/init.te b/public/init.te
-index dafc06f9..b52089e1 100644
+index eb050ee3..4aab2c65 100644
 --- a/public/init.te
 +++ b/public/init.te
 @@ -1,5 +1,10 @@
@@ -825,7 +791,7 @@ index dafc06f9..b52089e1 100644
  
  # The init domain is entered by execing init.
  type init_exec, exec_type, file_type;
-@@ -496,7 +501,7 @@ neverallow init shell_data_file:lnk_file read;
+@@ -497,7 +502,7 @@ neverallow init shell_data_file:lnk_file read;
  neverallow init app_data_file:lnk_file read;
  
  # init should never execute a program without changing to another domain.
@@ -834,7 +800,7 @@ index dafc06f9..b52089e1 100644
  
  # Init never adds or uses services via service_manager.
  neverallow init service_manager_type:service_manager { add find };
-@@ -506,4 +511,4 @@ neverallow init servicemanager:service_manager list;
+@@ -507,4 +512,4 @@ neverallow init servicemanager:service_manager list;
  neverallow init shell_data_file:dir { write add_name remove_name };
  
  # Init should not access sysfs node that are not explicitly labeled.

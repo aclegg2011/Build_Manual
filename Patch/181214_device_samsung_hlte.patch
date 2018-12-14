@@ -12,7 +12,7 @@ index 6d1f24e..b9be7f4 100644
  # NFC
  include $(COMMON_PATH)/nfc/bcm2079x/board.mk
 diff --git a/init/init_hlte.cpp b/init/init_hlte.cpp
-index c6b42e1..4f456bb 100644
+index dc4815c..3876506 100644
 --- a/init/init_hlte.cpp
 +++ b/init/init_hlte.cpp
 @@ -98,6 +98,57 @@ void init_target_properties()
